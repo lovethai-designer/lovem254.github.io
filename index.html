@@ -161,6 +161,7 @@
                     <button id="performFrameAnalysisButton" class="btn btn-primary"><i class="fas fa-chart-line mr-2"></i>Perform Frame Analysis</button>
                     <button id="performBeamDesignButton" class="btn btn-primary"><i class="fas fa-ruler-combined mr-2"></i>Perform Beam Design</button>
                     <button id="performColumnDesignButton" class="btn btn-primary"><i class="fas fa-columns mr-2"></i>Perform Column Design</button>
+                    <button id="explainAiButton" class="btn btn-secondary"><i class="fas fa-brain mr-2"></i>Explain AI</button>
                 </div>
 
                 <div id="structuralOutputContainer" class="mt-8">
@@ -231,21 +232,7 @@
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // API Key provided by the user
-        const apiKey = "curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" \
-  -H 'Content-Type: application/json' \
-  -H 'X-goog-api-key: GEMINI_API_KEY' \
-  -X POST \
-  -d '{
-    "contents": [
-      {
-        "parts": [
-          {
-            "text": "Explain how AI works in a few words"
-          }
-        ]
-      }
-    ]
-  }'"; // This is now an empty string as per best practices
+        const apiKey = ""; // This is now an empty string as per best practices
         let generatedSvg = null; // Variable to store the generated SVG string
         
         // Firebase Initialization
@@ -297,6 +284,7 @@
             document.getElementById('performFrameAnalysisButton').addEventListener('click', () => performStructuralAnalysis('frame analysis'));
             document.getElementById('performBeamDesignButton').addEventListener('click', () => performStructuralAnalysis('beam design'));
             document.getElementById('performColumnDesignButton').addEventListener('click', () => performStructuralAnalysis('column design'));
+            document.getElementById('explainAiButton').addEventListener('click', explainAi);
             document.getElementById('designImageUploadInput').addEventListener('change', handleDesignImageUpload);
             document.getElementById('clearDesignImageButton').addEventListener('click', clearDesignImage);
             document.getElementById('drawingImageUploadInput').addEventListener('change', handleDrawingImageUpload);
@@ -799,7 +787,31 @@
             }
         }
 
+        async function explainAi() {
+            const payload = {
+                contents: [
+                    {
+                        parts: [
+                            {
+                                text: "Explain how AI works in a few words"
+                            }
+                        ]
+                    }
+                ],
+            };
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
+
+            try {
+                const response = await fetchWithRetry(apiUrl, payload);
+                const result = await response.json();
+                const explanation = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Could not retrieve explanation.";
+                showMessage('How AI Works', explanation);
+            } catch (error) {
+                console.error("Error explaining AI:", error);
+                showMessage('Error', 'Failed to get an explanation. Please check the console for details.');
+            }
+        }
+
     </script>
 </body>
 </html>
-
