@@ -16,7 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        @import url('https://fonts.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
 
         body {
             font-family: 'Inter', sans-serif;
@@ -231,6 +231,8 @@
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+        // API Key provided by the user
+        const apiKey = "AIzaSyBvysHIIOUbzmYh_CVtr1ozqOsM7HXFBI0"; // This is now an empty string as per best practices
         let generatedSvg = null; // Variable to store the generated SVG string
         
         // Firebase Initialization
@@ -569,8 +571,7 @@
                         responseModalities: ['TEXT', 'IMAGE']
                     },
                 };
-                // Authentication is handled by the environment, so we remove the API key from the URL.
-                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent`;
+                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
                 
                 const response = await fetchWithRetry(apiUrl, payload);
 
@@ -631,8 +632,7 @@
 
             try {
                 let payload;
-                // Authentication is handled by the environment, so we remove the API key from the URL.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+                let apiUrl;
 
                 if (drawingFile) {
                     const base64Image = await new Promise(resolve => {
@@ -656,6 +656,7 @@
                         },
                         model: 'gemini-2.5-flash-preview-05-20'
                     };
+                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 } else {
                     // New logic for prompt-only generation
                     const userPrompt = `You are a professional architect. Your task is to generate a simple, 2D architectural floor plan in SVG format based on the following detailed description: "${promptText}". The SVG should be a single string with no extra text or markdown formatting. Only return the raw SVG code.`;
@@ -671,6 +672,7 @@
                         },
                         model: 'gemini-2.5-flash-preview-05-20'
                     };
+                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 }
                 
                 const response = await fetchWithRetry(apiUrl, payload);
@@ -764,8 +766,7 @@
                     }],
                     model: 'gemini-2.5-flash-preview-05-20'
                 };
-                // Authentication is handled by the environment, so we remove the API key from the URL.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
                 const response = await fetchWithRetry(apiUrl, payload);
                 const result = await response.json();
@@ -798,8 +799,7 @@
                     }
                 ],
             };
-            // Authentication is handled by the environment, so we remove the API key from the URL.
-            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
 
             try {
                 const response = await fetchWithRetry(apiUrl, payload);
