@@ -14,453 +14,140 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #e0f2fe; /* Light blue */
-        }
-        .monospace {
-            font-family: 'Roboto Mono', monospace;
-        }
-        .card {
-            background-color: #ffffff;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-        }
-        .tab-button.active {
-            background-color: #e5e7eb;
-            font-weight: 600;
-        }
-        .btn {
-            @apply px-4 py-2 rounded-lg font-medium transition duration-200 ease-in-out transform hover:scale-105 active:scale-95;
-        }
-        .btn-primary {
-            @apply bg-indigo-600 text-white hover:bg-indigo-700;
-        }
-        .btn-secondary {
-            @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-in-out forwards;
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8 min-h-screen bg-blue-100">
-
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Main Content Area -->
-        <div class="md:col-span-2">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Loveth AI Designer</h1>
-            <p class="text-gray-600 mb-8">Your all-in-one platform for architectural design, drawing, and structural analysis.</p>
-
-            <!-- Tab Navigation -->
-            <div class="flex space-x-2 md:space-x-4 mb-8">
-                <button id="tabDesign" class="tab-button active btn btn-secondary"><i class="fas fa-magic mr-2"></i>Render image</button>
-                <button id="tabDraw" class="tab-button btn btn-secondary"><i class="fas fa-pencil-ruler mr-2"></i>Architectural Design</button>
-                <button id="tabStructural" class="tab-button btn btn-secondary"><i class="fas fa-building mr-2"></i>Structural Design</button>
-            </div>
-
-            <!-- Design Tab Content -->
-            <div id="designContent" class="card">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">AI-Powered Render Image</h2>
-                
-                <div class="mb-6">
-                    <label for="designImageUploadInput" class="block text-gray-700 font-medium mb-2">Upload a Reference Image</label>
-                    <input type="file" id="designImageUploadInput" accept="image/*" class="block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-lg file:border-0
-                        file:text-sm file:font-medium
-                        file:bg-indigo-50 file:text-indigo-700
-                        hover:file:bg-indigo-100 transition duration-200"/>
-                    <div class="flex flex-wrap items-center mt-4">
-                        <img id="designImagePreview" class="hidden max-w-xs h-auto rounded-lg shadow-md" alt="Design Preview">
-                        <button id="clearDesignImageButton" class="hidden ml-4 text-red-500 hover:text-red-700 transition duration-200"><i class="fas fa-times-circle"></i> Clear Image</button>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <label for="designPromptInput" class="block text-gray-700 font-medium mb-2">Design Prompt</label>
-                    <textarea id="designPromptInput" rows="4" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200" placeholder="Describe your dream house... e.g., 'A modern, two-story house with large glass windows and a rooftop garden.' (Optional)"></textarea>
-                </div>
-                
-                <div class="flex flex-wrap gap-4 mb-6">
-                    <button id="renderButton" class="btn btn-primary"><i class="fas fa-camera mr-2"></i>Render Image</button>
-                    <button id="downloadRenderedImageButton" class="btn btn-secondary" disabled><i class="fas fa-download mr-2"></i>Download Image</button>
-                </div>
-
-                <div id="renderOutputContainer" class="mt-8 min-h-[500px] flex flex-col items-center justify-start p-4 bg-blue-50 rounded-lg">
-                    <div class="p-4 text-center text-gray-500 w-full">Rendered images will appear here.</div>
-                </div>
-            </div>
-
-            <!-- Draw Tab Content -->
-            <div id="drawContent" class="card hidden">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Architectural Design Generation</h2>
-                <p class="text-gray-600 mb-6">Generate an architectural plan from a text prompt or a reference image.</p>
-                
-                <div class="mb-6">
-                    <label for="drawingImageUploadInput" class="block text-gray-700 font-medium mb-2">Upload a Reference Drawing (Optional)</label>
-                    <input type="file" id="drawingImageUploadInput" accept="image/*" class="block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-lg file:border-0
-                        file:text-sm file:font-medium
-                        file:bg-indigo-50 file:text-indigo-700
-                        hover:file:bg-indigo-100 transition duration-200"/>
-                    <div class="flex flex-wrap items-center mt-4">
-                        <img id="drawingImagePreview" class="hidden max-w-xs h-auto rounded-lg shadow-md" alt="Drawing Preview">
-                        <button id="clearDrawingImageButton" class="hidden ml-4 text-red-500 hover:text-red-700 transition duration-200"><i class="fas fa-times-circle"></i> Clear Image</button>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <label for="drawingPromptInput" class="block text-gray-700 font-medium mb-2">Drawing Prompt</label>
-                    <textarea id="drawingPromptInput" rows="4" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200" placeholder="e.g., 'Generate an architectural plan for a 3-bedroom house with an open-concept living area.'"></textarea>
-                </div>
-
-                <div class="flex flex-wrap gap-4 mb-6">
-                    <button id="generateDrawingButton" class="btn btn-primary"><i class="fas fa-drafting-compass mr-2"></i>Generate Drawing</button>
-                    <button id="downloadDrawingButton" class="btn btn-secondary" disabled><i class="fas fa-download mr-2"></i>Download PDF</button>
-                </div>
-
-                <div id="drawingOutputContainer" class="mt-8 overflow-x-auto">
-                    <!-- The generated SVG will be injected here -->
-                    <div id="drawingOutput" class="bg-gray-200 p-4 rounded-lg shadow-inner min-h-[400px] flex items-center justify-center text-center text-gray-500">
-                        Generated architectural plan will appear here.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Structural Tab Content -->
-            <div id="structuralContent" class="card hidden">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Structural Design Analysis</h2>
-                <div class="mb-6">
-                    <label for="structuralImageUploadInput" class="block text-gray-700 font-medium mb-2">Upload Structural Image</label>
-                    <input type="file" id="structuralImageUploadInput" accept="image/*" class="block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-lg file:border-0
-                        file:text-sm file:font-medium
-                        file:bg-indigo-50 file:text-indigo-700
-                        hover:file:bg-indigo-100 transition duration-200"/>
-                    <div class="flex flex-wrap items-center mt-4">
-                        <img id="structuralImagePreview" class="hidden max-w-xs h-auto rounded-lg shadow-md" alt="Structural Preview">
-                        <button id="clearStructuralImageButton" class="hidden ml-4 text-red-500 hover:text-red-700 transition duration-200"><i class="fas fa-times-circle"></i> Clear Image</button>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap gap-4 mb-6">
-                    <button id="performFrameAnalysisButton" class="btn btn-primary"><i class="fas fa-chart-line mr-2"></i>Perform Frame Analysis</button>
-                    <button id="performBeamDesignButton" class="btn btn-primary"><i class="fas fa-ruler-combined mr-2"></i>Perform Beam Design</button>
-                    <button id="performColumnDesignButton" class="btn btn-primary"><i class="fas fa-columns mr-2"></i>Perform Column Design</button>
-                    <button id="explainAiButton" class="btn btn-secondary"><i class="fas fa-brain mr-2"></i>Explain AI</button>
-                </div>
-
-                <div id="structuralOutputContainer" class="mt-8">
-                    <div class="p-4 text-center text-gray-500">Analysis results will appear here.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar / Right Panel -->
-        <div class="md:col-span-1">
-            <div class="card mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Project Details</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label for="projectTitleInput" class="block text-gray-700 font-medium mb-1">Project Title</label>
-                        <input type="text" id="projectTitleInput" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Project Title">
-                    </div>
-                    <div>
-                        <label for="clientNameInput" class="block text-gray-700 font-medium mb-1">Client Name</label>
-                        <input type="text" id="clientNameInput" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Client Name">
-                    </div>
-                    <div>
-                        <label for="sheetNumberInput" class="block text-gray-700 font-medium mb-1">Sheet Number</label>
-                        <input type="text" id="sheetNumberInput" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Sheet Number">
-                    </div>
-                    <div>
-                        <label for="scaleInput" class="block text-gray-700 font-medium mb-1">Scale</label>
-                        <input type="text" id="scaleInput" class="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Scale">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div id="titleBlockContainer" class="border border-gray-300 p-4 rounded-lg shadow-inner">
-                    <h3 class="text-xl font-bold mb-2">Project Title</h3>
-                    <p class="text-gray-700">Client: <span class="font-medium"></span></p>
-                    <p class="text-700">Sheet: <span class="font-medium"></span></p>
-                    <p class="text-gray-700">Scale: <span class="font-medium"></span></p>
-                    <p class="mt-4 text-sm text-gray-500">UserId: <span id="userIdDisplay" class="font-mono">Not authenticated</span></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for showing messages/alerts -->
-    <div id="modalContainer" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div id="modalContent" class="mt-3 text-center">
-                <h3 id="modalTitle" class="text-lg leading-6 font-medium text-gray-900"></h3>
-                <div class="mt-2 px-7 py-3">
-                    <p id="modalMessage" class="text-sm text-gray-500"></p>
-                </div>
-                <div class="items-center px-4 py-3">
-                    <button id="modalOkButton" class="px-4 py-2 bg-indigo-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Firebase SDK and all application logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by the environment
+        // Global variables for Firebase services
+        window.firebaseApp = null;
+        window.auth = null;
+        window.db = null;
+        window.userId = null;
+        window.isAuthReady = false;
+        
+        // Use provided global variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // API Key provided by the user
-        const apiKey = "
-        "; // This is now an empty string as per best practices
-        let generatedSvg = null; // Variable to store the generated SVG string
-        
-        // Firebase Initialization
-        let app, db, auth;
-        let userId = null; // Initialize userId to null
-        let lastGeneratedImageBase64 = null; // New global variable to store the last generated image
-
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Function to initialize Firebase
+        async function initializeFirebase() {
             try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+                if (Object.keys(firebaseConfig).length > 0) {
+                    window.firebaseApp = initializeApp(firebaseConfig);
+                    window.db = getFirestore(window.firebaseApp);
+                    window.auth = getAuth(window.firebaseApp);
 
-                // Use the provided custom token if available, otherwise sign in anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                // Wait for authentication to complete
-                await new Promise(resolve => {
-                    const unsubscribe = onAuthStateChanged(auth, user => {
+                    onAuthStateChanged(window.auth, async (user) => {
                         if (user) {
-                            userId = user.uid;
-                            document.getElementById('userIdDisplay').textContent = userId;
-                            loadProjectData();
-                            unsubscribe(); // Unsubscribe after the first valid auth state
-                            resolve();
+                            window.userId = user.uid;
+                            document.getElementById('user-id-display').textContent = `User ID: ${window.userId}`;
+                            document.getElementById('project-path-display').textContent = `Project Path: /artifacts/${appId}/users/${window.userId}/projects/loveth_designer`;
+                        } else {
+                            window.userId = null;
+                            document.getElementById('user-id-display').textContent = 'User ID: Not authenticated';
+                            document.getElementById('project-path-display').textContent = 'Project Path: N/A';
                         }
+                        window.isAuthReady = true;
                     });
-                });
+
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(window.auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(window.auth);
+                    }
+                } else {
+                    console.error("Firebase config is missing.");
+                    window.isAuthReady = true;
+                }
             } catch (e) {
-                console.error("Firebase initialization failed:", e);
-                document.getElementById('userIdDisplay').textContent = 'Authentication Failed';
+                console.error("Error initializing Firebase:", e);
+                window.isAuthReady = true;
             }
+        }
+        initializeFirebase();
+        
+        // --- All application logic now resides within this module script ---
+        
+        const apiKey = "";
+        const tabs = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        let currentSVG = null;
 
-            // Event Listeners for UI interaction
-            document.getElementById('generateDrawingButton').addEventListener('click', generateDrawing);
-            document.getElementById('downloadDrawingButton').addEventListener('click', downloadDrawing);
-            document.getElementById('projectTitleInput').addEventListener('input', updateTitleBlock);
-            document.getElementById('clientNameInput').addEventListener('input', updateTitleBlock);
-            document.getElementById('sheetNumberInput').addEventListener('input', updateTitleBlock);
-            document.getElementById('scaleInput').addEventListener('input', updateTitleBlock);
-            document.getElementById('renderButton').addEventListener('click', generatePhotorealisticRender);
-            document.getElementById('downloadRenderedImageButton').addEventListener('click', downloadRenderedImage);
-            document.getElementById('structuralImageUploadInput').addEventListener('change', handleStructuralImageUpload);
-            document.getElementById('clearStructuralImageButton').addEventListener('click', clearStructuralImage);
-            document.getElementById('performFrameAnalysisButton').addEventListener('click', () => performStructuralAnalysis('frame analysis'));
-            document.getElementById('performBeamDesignButton').addEventListener('click', () => performStructuralAnalysis('beam design'));
-            document.getElementById('performColumnDesignButton').addEventListener('click', () => performStructuralAnalysis('column design'));
-            document.getElementById('explainAiButton').addEventListener('click', explainAi);
-            document.getElementById('designImageUploadInput').addEventListener('change', handleDesignImageUpload);
-            document.getElementById('clearDesignImageButton').addEventListener('click', clearDesignImage);
-            document.getElementById('drawingImageUploadInput').addEventListener('change', handleDrawingImageUpload);
-            document.getElementById('clearDrawingImageButton').addEventListener('click', clearDrawingImage);
-            document.getElementById('tabDesign').addEventListener('click', () => toggleTabs('design'));
-            document.getElementById('tabDraw').addEventListener('click', () => toggleTabs('draw'));
-            document.getElementById('tabStructural').addEventListener('click', () => toggleTabs('structural'));
-            
-            toggleTabs('design');
-        });
+        // Ensure MathJax is loaded before use
+        let mathJaxReady = false;
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            startup: {
+                pageReady: () => {
+                    mathJaxReady = true;
+                }
+            }
+        };
 
-        function showMessage(title, message) {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
+        window.showMessage = function(title, message) {
+            const modalContainer = document.getElementById('modal-container');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').textContent = message;
             modalContainer.classList.remove('hidden');
         }
 
-        modalOkButton.addEventListener('click', () => {
+        window.hideModal = function() {
+            const modalContainer = document.getElementById('modal-container');
             modalContainer.classList.add('hidden');
-        });
-
-        // Function to save project data to Firestore
-        async function saveProjectData() {
-            if (!userId) {
-                console.error("User not authenticated.");
-                return;
-            }
-
-            const projectData = {
-                projectTitle: projectTitleInput.value,
-                clientName: clientNameInput.value,
-                sheetNumber: sheetNumberInput.value,
-                scale: scaleInput.value,
-                designPrompt: designPromptInput.value,
-                drawingPrompt: drawingPromptInput.value,
-                timestamp: new Date()
-            };
-
-            const docPath = `/artifacts/${appId}/users/${userId}/projects/default`;
-            const docRef = doc(db, docPath);
-
-            try {
-                await setDoc(docRef, projectData, { merge: true });
-                console.log("Project data saved successfully!");
-            } catch (e) {
-                console.error("Error saving document:", e);
-            }
         }
 
-        // Function to load project data from Firestore
-        async function loadProjectData() {
-            if (!userId) {
-                console.error("User not authenticated.");
-                return;
-            }
-
-            const docPath = `/artifacts/${appId}/users/${userId}/projects/default`;
-            const docRef = doc(db, docPath);
-
-            try {
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    projectTitleInput.value = data.projectTitle || '';
-                    clientNameInput.value = data.clientName || '';
-                    sheetNumberInput.value = data.sheetNumber || '';
-                    scaleInput.value = data.scale || '';
-                    designPromptInput.value = data.designPrompt || '';
-                    drawingPromptInput.value = data.drawingPrompt || '';
-                    updateTitleBlock();
-                }
-            } catch (e) {
-                console.error("Error loading document:", e);
-            }
+        function showLoading() {
+            loadingOverlay.classList.remove('hidden');
         }
 
-        function updateTitleBlock() {
-            titleBlockContainer.querySelector('h3').textContent = projectTitleInput.value || 'Project Title';
-            titleBlockContainer.querySelectorAll('p')[0].querySelector('span').textContent = clientNameInput.value || '';
-            titleBlockContainer.querySelectorAll('p')[1].querySelector('span').textContent = sheetNumberInput.value || '';
-            titleBlockContainer.querySelectorAll('p')[2].querySelector('span').textContent = scaleInput.value || '';
-            saveProjectData();
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
         }
 
-        function toggleTabs(tab) {
-            const tabs = [tabDesign, tabDraw, tabStructural];
-            const contents = [designContent, drawContent, structuralContent];
+        window.onload = function() {
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.id.replace('tab-', '');
+                    tabs.forEach(t => t.classList.remove('active-tab-bg', 'bg-gray-100'));
+                    tab.classList.add('active-tab-bg', 'bg-gray-100');
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(targetTab + '-content').classList.add('active');
+                });
+            });
+            document.getElementById('tab-render').classList.add('active-tab-bg', 'bg-gray-100');
 
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.add('hidden'));
-
-            if (tab === 'design') {
-                tabDesign.classList.add('active');
-                designContent.classList.remove('hidden');
-            } else if (tab === 'draw') {
-                tabDraw.classList.add('active');
-                drawContent.classList.remove('hidden');
-            } else if (tab === 'structural') {
-                tabStructural.classList.add('active');
-                structuralContent.classList.remove('hidden');
-            }
-        }
-
-        function handleDesignImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('designImagePreview');
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    document.getElementById('clearDesignImageButton').classList.remove('hidden');
-                    lastGeneratedImageBase64 = null; // Clear the previous generated image to start fresh
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function clearDesignImage() {
-            document.getElementById('designImageUploadInput').value = '';
-            document.getElementById('designImagePreview').src = '';
-            document.getElementById('designImagePreview').classList.add('hidden');
-            document.getElementById('clearDesignImageButton').classList.add('hidden');
-            lastGeneratedImageBase64 = null; // Clear the last generated image
-            document.getElementById('renderOutputContainer').innerHTML = `<div class="p-4 text-center text-gray-500 w-full">Rendered images will appear here.</div>`;
-            document.getElementById('downloadRenderedImageButton').disabled = true;
-        }
-
-        function handleDrawingImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('drawingImagePreview');
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    document.getElementById('clearDrawingImageButton').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function clearDrawingImage() {
-            document.getElementById('drawingImageUploadInput').value = '';
-            document.getElementById('drawingImagePreview').src = '';
-            document.getElementById('drawingImagePreview').classList.add('hidden');
-            document.getElementById('clearDrawingImageButton').classList.add('hidden');
-        }
+            document.getElementById('render-button').addEventListener('click', generateRender);
+            document.getElementById('design-button').addEventListener('click', generateDesign);
+            document.getElementById('structural-button').addEventListener('click', performStructuralAnalysis);
+        };
         
-        function handleStructuralImageUpload(event) {
-            const file = event.target.files[0];
+        window.previewRenderImage = function() {
+            const fileInput = document.getElementById('render-image');
+            const previewImage = document.getElementById('render-preview-image');
+            const placeholderText = document.getElementById('render-placeholder-text');
+            const file = fileInput.files[0];
+
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('structuralImagePreview');
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    document.getElementById('clearStructuralImageButton').classList.remove('hidden');
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.classList.remove('hidden');
+                    placeholderText.classList.add('hidden');
                 };
                 reader.readAsDataURL(file);
+            } else {
+                previewImage.classList.add('hidden');
+                placeholderText.classList.remove('hidden');
             }
         }
 
-        function clearStructuralImage() {
-            document.getElementById('structuralImageUploadInput').value = '';
-            const preview = document.getElementById('structuralImagePreview');
-            preview.src = '';
-            preview.classList.add('hidden');
-            document.getElementById('clearStructuralImageButton').classList.add('hidden');
-            document.getElementById('structuralOutputContainer').innerHTML = `<div class="p-4 text-center text-gray-500">Analysis results will appear here.</div>`;
-        }
-
-
-        // New function to handle retries with exponential backoff
-        async function fetchWithRetry(url, payload, retries = 3, backoff = 1000) {
+        async function fetchWithRetry(url, payload, retries = 3, delay = 1000) {
             for (let i = 0; i < retries; i++) {
                 try {
                     const response = await fetch(url, {
@@ -468,327 +155,268 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-
-                    if (response.status === 429) {
-                        console.log(`Rate limit exceeded. Retrying in ${backoff}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, backoff));
-                        backoff *= 2; // Exponential backoff
-                        continue;
+                    if (response.ok) {
+                        return response;
+                    } else if (response.status === 429) {
+                        console.warn(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2; // Exponential backoff
+                    } else {
+                        throw new Error(`API responded with status: ${response.status}`);
                     }
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`Fetch attempt ${i + 1} failed with status: ${response.status}. Error text: ${errorText}`);
-                        throw new Error(`API error: ${response.status} ${response.statusText || errorText}`);
-                    }
-
-                    return response;
                 } catch (error) {
                     if (i === retries - 1) {
                         throw error;
                     }
-                    console.error(`Fetch attempt ${i + 1} failed:`, error);
+                    console.error(`Fetch failed. Retrying in ${delay / 1000} seconds...`, error);
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
                 }
             }
-            throw new Error('All fetch attempts failed.');
+            throw new Error("Failed to fetch after multiple retries.");
         }
 
-        async function generatePhotorealisticRender() {
-            const renderOutputContainer = document.getElementById('renderOutputContainer');
-            const downloadButton = document.getElementById('downloadRenderedImageButton');
-            
-            const designImageUploadInput = document.getElementById('designImageUploadInput');
-            const uploadedFile = designImageUploadInput.files[0];
-            
-            // Disable buttons immediately to prevent multiple clicks
-            renderButton.disabled = true;
-            downloadButton.disabled = true;
+        async function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
 
-            // Clear the render container
-            renderOutputContainer.innerHTML = '';
-            
-            let imageToUse = null;
-            let imageToUseUrl = null;
+        async function generateRender() {
+            const prompt = document.getElementById('render-prompt').value;
+            const imageFile = document.getElementById('render-image').files[0];
+            const outputContainer = document.getElementById('render-output');
+            outputContainer.innerHTML = '<span class="text-gray-500 italic">Generating...</span>';
+            showLoading();
 
-            // Check if there is a previously generated image
-            if (lastGeneratedImageBase64) {
-                imageToUse = lastGeneratedImageBase64;
-                imageToUseUrl = `data:image/png;base64,${lastGeneratedImageBase64}`;
-            } else if (uploadedFile) {
-                // If not, check if there is an uploaded file
-                imageToUse = await new Promise(resolve => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(uploadedFile);
+            const payload = {
+                contents: [{
+                    parts: [{ text: `Generate a photorealistic architectural render based on the following prompt: ${prompt}.` }]
+                }],
+                generationConfig: {
+                    responseModalities: ['TEXT', 'IMAGE']
+                }
+            };
+
+            if (imageFile) {
+                const base64Image = await fileToBase64(imageFile);
+                payload.contents[0].parts.push({
+                    inlineData: {
+                        mimeType: imageFile.type,
+                        data: base64Image
+                    }
                 });
-                imageToUseUrl = URL.createObjectURL(uploadedFile);
             }
 
-            if (!imageToUse) {
-                showMessage('Missing Image', 'Please upload a reference image to get started.');
-                renderButton.disabled = false;
-                return;
-            }
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=" + apiKey;
 
-            if (imageToUseUrl) {
-                // Display the image being used for the generation
-                renderOutputContainer.innerHTML = `<div class="w-full flex justify-center"><img src="${imageToUseUrl}" alt="Base Image" class="w-full max-h-[480px] rounded-lg shadow-md object-contain animate-fade-in"></div>`;
-            }
-
-            // Create a new container for the loading state and final image
-            const newRenderDiv = document.createElement('div');
-            newRenderDiv.className = 'w-full flex flex-col items-center justify-center p-4';
-            newRenderDiv.innerHTML = `
-                <div class="p-4 bg-blue-50 text-center rounded-lg animate-pulse text-gray-600">
-                    <i class="fas fa-spinner fa-spin mr-2"></i>
-                    <p>Generating new render...</p>
-                </div>`;
-            
-            renderOutputContainer.appendChild(newRenderDiv);
-            
             try {
-                let payload;
-                let apiUrl;
-                
-                // --- Updated Logic to control AI generation ---
-                const designPrompt = designPromptInput.value.trim();
-                let promptText;
-                const corePrompt = `Generate a new photorealistic architectural render of the house from the provided image. The new render must be of the SAME viewpoint as the uploaded image. Accurately retain all key architectural details, materials, paint, and the overall luxurious style of the original image. Do not add features like extra doors, windows, or curving windows if they are not present in the original image.`;
-                
-                if (designPrompt) {
-                    promptText = `${corePrompt} Incorporate the following design features: ${designPrompt}.`;
-                } else {
-                    promptText = corePrompt;
-                }
-                
-                payload = {
-                    contents: [{
-                        parts: [
-                            { text: promptText },
-                            { inlineData: { mimeType: 'image/png', data: imageToUse } }
-                        ]
-                    }],
-                    generationConfig: {
-                        responseModalities: ['TEXT', 'IMAGE']
-                    },
-                };
-                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
-                
                 const response = await fetchWithRetry(apiUrl, payload);
-
                 const result = await response.json();
-                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-
-                if (base64Data) {
-                    lastGeneratedImageBase64 = base64Data; // Store the new image for the next iteration
-                    const imageUrl = `data:image/png;base64,${base64Data}`;
-                    renderOutputContainer.innerHTML = `
-                        <div class="w-full h-full flex items-center justify-center">
-                            <img src="${imageUrl}" alt="Photorealistic Render" class="w-full max-h-[480px] rounded-lg shadow-md object-contain">
-                        </div>`;
-                    downloadButton.disabled = false;
+                const imageData = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                
+                if (imageData) {
+                    const imageUrl = `data:image/jpeg;base64,${imageData}`;
+                    outputContainer.innerHTML = `<img src="${imageUrl}" alt="AI Generated Render" class="rounded-xl shadow-lg w-full h-auto object-cover">`;
                 } else {
-                    renderOutputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Failed to generate image. No data received.</div>`;
+                    const textOutput = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'No image generated. Please try again with a different prompt.';
+                    outputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">${textOutput}</div>`;
                 }
-
             } catch (error) {
                 console.error("Error generating render:", error);
-                renderOutputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+                outputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
             } finally {
-                // Re-enable buttons regardless of success or failure
-                renderButton.disabled = false;
+                hideLoading();
             }
         }
 
-        function downloadRenderedImage() {
-            if (!lastGeneratedImageBase64) {
-                showMessage('No Image to Download', 'Please generate a photorealistic render first.');
-                return;
-            }
+        async function generateDesign() {
+            const prompt = document.getElementById('design-input').value;
+            const imageFile = document.getElementById('design-image').files[0];
+            const outputContainer = document.getElementById('design-output');
+            const downloadButton = document.getElementById('download-pdf-button');
+            outputContainer.innerHTML = '<span class="text-gray-500 italic">Generating...</span>';
+            downloadButton.classList.add('hidden');
+            showLoading();
 
-            const link = document.createElement('a');
-            link.href = `data:image/png;base64,${lastGeneratedImageBase64}`;
-            link.download = 'Loveth_AI_Render.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+            const payload = {
+                contents: [{
+                    parts: [{ text: `Generate a 2D architectural floor plan in SVG format based on the following description: ${prompt}. Only provide the SVG code block, nothing else.` }]
+                }]
+            };
 
-        async function generateDrawing() {
-            const drawingOutput = document.getElementById('drawingOutput');
-            const downloadButton = document.getElementById('downloadDrawingButton');
-            const drawingFile = drawingImageUploadInput.files[0];
-            const promptText = drawingPromptInput.value.trim();
-            
-            if (!drawingFile && !promptText) {
-                showMessage('Missing Information', 'Please either upload a reference image or provide a detailed prompt.');
-                return;
-            }
-            
-            drawingOutput.innerHTML = `<div class="p-4 bg-blue-50 text-center rounded-lg animate-pulse text-gray-600">
-                <i class="fas fa-spinner fa-spin mr-2"></i>
-                <p>Generating architectural plan...</p>
-            </div>`;
-            downloadButton.disabled = true;
-
-            try {
-                let payload;
-                let apiUrl;
-
-                if (drawingFile) {
-                    const base64Image = await new Promise(resolve => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                        reader.readAsDataURL(drawingFile);
-                    });
-
-                    const userPrompt = `You are a professional architect. Your task is to generate a simple, 2D architectural floor plan in SVG format based on the uploaded image and the following user request: "${promptText}". The SVG should be a single string with no extra text or markdown formatting. Only return the raw SVG code.`;
-
-                    payload = {
-                        contents: [{
-                            parts: [
-                                { text: userPrompt },
-                                { inlineData: { mimeType: 'image/png', data: base64Image } }
-                            ]
-                        }],
-                        generationConfig: {
-                            responseMimeType: 'text/plain',
-                            stopSequences: [],
-                        },
-                        model: 'gemini-2.5-flash-preview-05-20'
-                    };
-                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                } else {
-                    // New logic for prompt-only generation
-                    const userPrompt = `You are a professional architect. Your task is to generate a simple, 2D architectural floor plan in SVG format based on the following detailed description: "${promptText}". The SVG should be a single string with no extra text or markdown formatting. Only return the raw SVG code.`;
-
-                    payload = {
-                        contents: [{
-                            parts: [
-                                { text: userPrompt }
-                            ]
-                        }],
-                        generationConfig: {
-                            responseMimeType: 'text/plain',
-                        },
-                        model: 'gemini-2.5-flash-preview-05-20'
-                    };
-                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                }
-                
-                const response = await fetchWithRetry(apiUrl, payload);
-
-                const result = await response.json();
-                const generatedText = result.candidates[0].content.parts[0].text.trim();
-                
-                if (generatedText.startsWith('<svg') && generatedText.endsWith('</svg>')) {
-                    generatedSvg = generatedText;
-                    drawingOutput.innerHTML = generatedSvg;
-                    downloadButton.disabled = false;
-                } else {
-                    drawingOutput.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: Invalid SVG generated. Please try a different or more detailed prompt.</div>`;
-                }
-
-            } catch (error) {
-                console.error("Error generating drawing:", error);
-                drawingOutput.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
-            }
-
-            saveProjectData();
-        }
-
-        async function downloadDrawing() {
-            if (!generatedSvg) {
-                showMessage('No Drawing', 'Please generate an architectural plan first.');
-                return;
-            }
-
-            const doc = new jspdf.jsPDF();
-
-            // Add project details
-            doc.setFontSize(22);
-            doc.text(projectTitleInput.value || 'Project Title', 14, 20);
-            doc.setFontSize(12);
-            doc.text(`Client: ${clientNameInput.value || 'N/A'}`, 14, 30);
-            doc.text(`Sheet: ${sheetNumberInput.value || 'N/A'}`, 14, 35);
-            doc.text(`Scale: ${scaleInput.value || 'N/A'}`, 14, 40);
-
-            // Add the generated SVG
-            try {
-                const svgElement = new DOMParser().parseFromString(generatedSvg, 'image/svg+xml').documentElement;
-                const canvas = document.createElement('canvas');
-                const svgSize = svgElement.getBoundingClientRect();
-                canvas.width = svgSize.width;
-                canvas.height = svgSize.height;
-
-                const ctx = canvas.getContext('2d');
-                const image = new Image();
-                image.onload = () => {
-                    ctx.drawImage(image, 0, 0);
-                    const imgData = canvas.toDataURL('image/png');
-                    doc.addImage(imgData, 'PNG', 10, 50, 190, 150);
-                    doc.save(`${projectTitleInput.value || 'Architectural Plan'}.pdf`);
-                };
-                image.src = `data:image/svg+xml;base64,${btoa(generatedSvg)}`;
-
-            } catch (error) {
-                console.error("Error creating PDF from SVG:", error);
-                showMessage('PDF Error', 'Failed to create PDF from the generated drawing. The SVG format may not be supported.');
-            }
-        }
-
-        async function performStructuralAnalysis(analysisType) {
-            const imageFile = structuralImageUploadInput.files[0];
-            if (!imageFile) {
-                showMessage('Missing Image', 'Please upload a structural image first.');
-                return;
-            }
-            
-            structuralOutputContainer.innerHTML = `<div class="p-4 bg-blue-50 text-center rounded-lg animate-pulse text-gray-600">
-                <i class="fas fa-spinner fa-spin mr-2"></i>
-                <p>Performing ${analysisType}...</p>
-            </div>`;
-            
-            try {
-                const base64Image = await new Promise(resolve => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(imageFile);
+            if (imageFile) {
+                const base64Image = await fileToBase64(imageFile);
+                payload.contents[0].parts.push({
+                    inlineData: {
+                        mimeType: imageFile.type,
+                        data: base64Image
+                    }
                 });
+            }
+            
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
 
-                const userPrompt = `You are a professional structural engineer. Analyze the uploaded image of a structural drawing and provide a detailed ${analysisType}. Provide your analysis in Markdown format, using LaTeX for all mathematical expressions. Do not use conversational filler, just provide the analysis report.`;
+            try {
+                const response = await fetchWithRetry(apiUrl, payload);
+                const result = await response.json();
+                let svgContent = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-                const payload = {
-                    contents: [{
-                        parts: [
-                            { text: userPrompt },
-                            { inlineData: { mimeType: 'image/png', data: base64Image } }
-                        ]
-                    }],
-                    model: 'gemini-2.5-flash-preview-05-20'
-                };
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                if (svgContent) {
+                    // Extract only the SVG part
+                    const svgMatch = svgContent.match(/<svg[\s\S]*?<\/svg>/);
+                    if (svgMatch) {
+                        svgContent = svgMatch[0];
+                        outputContainer.innerHTML = svgContent;
+                        currentSVG = svgContent;
+                        downloadButton.classList.remove('hidden');
+                    } else {
+                        outputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Invalid SVG output received.</div>`;
+                    }
+                } else {
+                    outputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">No SVG content generated.</div>`;
+                }
+            } catch (error) {
+                console.error("Error generating design:", error);
+                outputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+            } finally {
+                hideLoading();
+            }
+        }
 
+        window.downloadPDF = function() {
+            if (!currentSVG) {
+                showMessage('Download Error', 'No SVG content to download.');
+                return;
+            }
+            const doc = new jspdf.jsPDF('l', 'mm', 'a4');
+            const width = doc.internal.pageSize.getWidth();
+            const height = doc.internal.pageSize.getHeight();
+            doc.svg(currentSVG, {
+                x: 0,
+                y: 0,
+                width: width,
+                height: height
+            }).then(() => {
+                doc.save('architectural_plan.pdf');
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+                showMessage('Download Error', 'Failed to generate PDF. Please try again.');
+            });
+        }
+
+        async function performStructuralAnalysis() {
+            const imageFile = document.getElementById('structural-image').files[0];
+            const task = document.getElementById('structural-task').value;
+            const outputContainer = document.getElementById('structural-output');
+            outputContainer.innerHTML = '<span class="text-gray-500 italic">Performing analysis...</span>';
+            showLoading();
+
+            if (!imageFile) {
+                showMessage('Input Error', 'Please upload a structural image.');
+                hideLoading();
+                return;
+            }
+
+            const base64Image = await fileToBase64(imageFile);
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: `Perform a detailed structural analysis based on the image. The analysis task is ${task}. Provide the results in Markdown format, with all mathematical equations in LaTeX enclosed in $ or $$ delimiters. Be very thorough.` },
+                        {
+                            inlineData: {
+                                mimeType: imageFile.type,
+                                data: base64Image
+                            }
+                        }
+                    ]
+                }]
+            };
+
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
+
+            try {
                 const response = await fetchWithRetry(apiUrl, payload);
                 const result = await response.json();
                 const analysisText = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'No analysis could be performed.';
 
-                let formattedOutput = marked.parse(analysisText);
-                
-                structuralOutputContainer.innerHTML = `<div class="p-4 bg-white rounded-lg shadow-md mt-4 prose max-w-none">${formattedOutput}</div>`;
-                
-                // Trigger MathJax rendering
+                outputContainer.innerHTML = marked.parse(analysisText);
                 if (window.MathJax) {
                     window.MathJax.typesetPromise();
                 }
-
             } catch (error) {
                 console.error("Error performing structural analysis:", error);
-                structuralOutputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+                outputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+            } finally {
+                hideLoading();
             }
         }
 
-        async function explainAi() {
+        window.saveProject = async function() {
+            if (!window.isAuthReady) {
+                showMessage('Save Error', 'Authentication is not ready. Please wait a moment.');
+                return;
+            }
+            if (!window.userId) {
+                showMessage('Save Error', 'You must be authenticated to save a project.');
+                return;
+            }
+
+            const projectData = {
+                title: document.title,
+                client: "Loveth AI Designer",
+                data: {
+                    renderPrompt: document.getElementById('render-prompt').value,
+                    designPrompt: document.getElementById('design-input').value,
+                    structuralTask: document.getElementById('structural-task').value,
+                }
+            };
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const projectDocRef = doc(window.db, `artifacts/${appId}/users/${window.userId}/projects/loveth_designer`);
+
+            try {
+                await setDoc(projectDocRef, projectData, { merge: true });
+                showMessage('Project Saved', 'Your project data has been successfully saved to Firestore.');
+            } catch (error) {
+                console.error("Error saving project:", error);
+                showMessage('Save Error', `Failed to save project: ${error.message}`);
+            }
+        }
+
+        window.loadProject = async function() {
+            if (!window.isAuthReady) {
+                showMessage('Load Error', 'Authentication is not ready. Please wait a moment.');
+                return;
+            }
+            if (!window.userId) {
+                showMessage('Load Error', 'You must be authenticated to load a project.');
+                return;
+            }
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const projectDocRef = doc(window.db, `artifacts/${appId}/users/${window.userId}/projects/loveth_designer`);
+
+            try {
+                const docSnap = await getDoc(projectDocRef);
+                if (docSnap.exists()) {
+                    const projectData = docSnap.data();
+                    document.getElementById('render-prompt').value = projectData.data.renderPrompt || '';
+                    document.getElementById('design-input').value = projectData.data.designPrompt || '';
+                    document.getElementById('structural-task').value = projectData.data.structuralTask || 'frame-analysis';
+                    showMessage('Project Loaded', 'Project data has been successfully loaded.');
+                } else {
+                    showMessage('Load Error', 'No saved project found for this user.');
+                }
+            } catch (error) {
+                console.error("Error loading project:", error);
+                showMessage('Load Error', `Failed to load project: ${error.message}`);
+            }
+        }
+
+        window.explainAi = async function() {
             const payload = {
                 contents: [
                     {
@@ -814,6 +442,201 @@
         }
 
     </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loading-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #64748b;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-md p-4 flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-4">
+            <i class="fas fa-drafting-compass text-green-500 text-3xl"></i>
+            <h1 class="text-3xl font-bold text-gray-800">Loveth AI Designer</h1>
+        </div>
+        <div class="flex items-center gap-4 text-sm text-gray-600 font-mono">
+            <div>
+                <span id="user-id-display" class="block"></span>
+                <span id="project-path-display" class="block"></span>
+            </div>
+            <button onclick="saveProject()" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                <i class="fas fa-save mr-2"></i>Save
+            </button>
+            <button onclick="loadProject()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                <i class="fas fa-cloud-download-alt mr-2"></i>Load
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto p-4 md:p-8 flex flex-col lg:flex-row gap-8">
+        <!-- Sidebar and Tabs -->
+        <aside class="w-full lg:w-1/4 bg-white p-6 rounded-3xl shadow-lg flex flex-col gap-6">
+            <nav class="flex flex-col gap-2">
+                <button id="tab-render" class="tab-button w-full text-left p-4 rounded-xl font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition duration-300 active-tab-bg">
+                    <i class="fas fa-image mr-3 text-lg"></i> Render Image
+                </button>
+                <button id="tab-design" class="tab-button w-full text-left p-4 rounded-xl font-medium text-gray-700 hover:bg-gray-200 transition duration-300">
+                    <i class="fas fa-ruler-combined mr-3 text-lg"></i> Architectural Design
+                </button>
+                <button id="tab-structural" class="tab-button w-full text-left p-4 rounded-xl font-medium text-gray-700 hover:bg-gray-200 transition duration-300">
+                    <i class="fas fa-drafting-compass mr-3 text-lg"></i> Structural Design
+                </button>
+            </nav>
+            <div class="mt-auto pt-6 border-t border-gray-200">
+                <button onclick="explainAi()" class="w-full bg-slate-500 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                    <i class="fas fa-question-circle mr-2"></i> Explain AI
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <div class="w-full lg:w-3/4 bg-white p-6 rounded-3xl shadow-lg relative">
+            <div id="loading-overlay" class="loading-container hidden">
+                <div class="spinner"></div>
+            </div>
+            
+            <!-- Render Image Tab -->
+            <div id="render-content" class="tab-content active space-y-6">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4">Render Image</h2>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="w-full md:w-1/2">
+                        <label for="render-image" class="block text-gray-700 font-medium mb-2">Upload Reference Image</label>
+                        <input type="file" id="render-image" accept="image/*" class="w-full p-2 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300" onchange="previewRenderImage()">
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <label for="render-prompt" class="block text-gray-700 font-medium mb-2">Image Prompt</label>
+                        <textarea id="render-prompt" rows="3" class="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300" placeholder="e.g., A minimalist living room with large windows, natural light, and a fireplace."></textarea>
+                    </div>
+                </div>
+                <button id="render-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                    <i class="fas fa-magic mr-2"></i> Generate Render
+                </button>
+                <div id="render-output" class="mt-6 flex justify-center items-center p-6 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50">
+                    <img id="render-preview-image" class="rounded-xl shadow-lg w-full h-auto object-cover hidden" alt="Uploaded Image Preview">
+                    <span id="render-placeholder-text" class="text-gray-500 italic">Generated image will appear here.</span>
+                </div>
+            </div>
+
+            <!-- Architectural Design Tab -->
+            <div id="design-content" class="tab-content space-y-6">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4">Architectural Design</h2>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="w-full md:w-1/2">
+                        <label for="design-input" class="block text-gray-700 font-medium mb-2">Design Prompt (or upload image)</label>
+                        <textarea id="design-input" rows="3" class="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300" placeholder="e.g., A 3-bedroom, 2-bathroom house with an open-plan kitchen and a large living area."></textarea>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <label for="design-image" class="block text-gray-700 font-medium mb-2">Upload Reference Image</label>
+                        <input type="file" id="design-image" accept="image/*" class="w-full p-2 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300">
+                    </div>
+                </div>
+                <button id="design-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                    <i class="fas fa-drafting-compass mr-2"></i> Generate Plan
+                </button>
+                <div id="design-output" class="mt-6 flex justify-center items-center p-6 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50 overflow-auto">
+                    <span class="text-gray-500 italic">Generated architectural plan will appear here.</span>
+                </div>
+                <button id="download-pdf-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105 hidden mt-4">
+                    <i class="fas fa-file-pdf mr-2"></i> Download as PDF
+                </button>
+            </div>
+
+            <!-- Structural Design Tab -->
+            <div id="structural-content" class="tab-content space-y-6">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4">Structural Design</h2>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="w-full md:w-1/2">
+                        <label for="structural-image" class="block text-gray-700 font-medium mb-2">Upload Structural Image</label>
+                        <input type="file" id="structural-image" accept="image/*" class="w-full p-2 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300">
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <label for="structural-task" class="block text-gray-700 font-medium mb-2">Analysis Task</label>
+                        <select id="structural-task" class="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300">
+                            <option value="frame-analysis">Frame Analysis</option>
+                            <option value="beam-design">Beam Design</option>
+                            <option value="column-design">Column Design</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="structural-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                    <i class="fas fa-cogs mr-2"></i> Perform Analysis
+                </button>
+                <div id="structural-output" class="mt-6 p-6 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50 font-mono text-sm overflow-auto">
+                    <span class="text-gray-500 italic">Analysis results will appear here.</span>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Toast/Modal for messages -->
+    <div id="message-container" class="fixed bottom-4 right-4 z-50"></div>
+    <div id="modal-container" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-4">
+            <h3 id="modal-title" class="text-2xl font-bold text-gray-800"></h3>
+            <p id="modal-body" class="text-gray-700"></p>
+            <button onclick="hideModal()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-full transition duration-300">Close</button>
+        </div>
+    </div>
 </body>
 </html>
-
