@@ -194,6 +194,9 @@
             const outputContainer = document.getElementById('render-output');
             outputContainer.innerHTML = '<span class="text-gray-500 italic">Generating...</span>';
             showLoading();
+            
+            const modelName = "gemini-2.5-flash-image-preview";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
             const payload = {
                 contents: [{
@@ -203,7 +206,7 @@
                     responseModalities: ['TEXT', 'IMAGE']
                 }
             };
-
+            
             if (imageFile) {
                 const base64Image = await fileToBase64(imageFile);
                 payload.contents[0].parts.push({
@@ -214,12 +217,10 @@
                 });
             }
 
-            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=" + apiKey;
-
             try {
-                const response = await fetchWithRetry(apiUrl, { instances: { prompt: prompt }, parameters: { "sampleCount": 1} });
+                const response = await fetchWithRetry(apiUrl, payload);
                 const result = await response.json();
-                const base64Data = result?.predictions?.[0]?.bytesBase64Encoded;
+                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
                 
                 if (base64Data) {
                     const imageUrl = `data:image/png;base64,${base64Data}`;
