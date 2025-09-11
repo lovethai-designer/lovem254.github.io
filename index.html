@@ -69,6 +69,7 @@
             list-style-type: disc;
             padding-left: 1.5rem;
         }
+        
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center p-4 min-h-screen">
@@ -108,11 +109,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Left Side: Prompt Input and Image Upload -->
             <div class="space-y-4">
-                <textarea id="promptInput" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none" placeholder="Enter a detailed design concept here (e.g., 'A sleek, minimalist kitchen with a large island, warm lighting, and natural wood accents')."></textarea>
+                <textarea id="promptInput" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none" placeholder="Describe the ideal surroundings for your building (e.g., 'a lush tropical garden with waterfalls' or 'a futuristic cityscape with flying cars')."></textarea>
                 <div class="flex items-center justify-between space-x-2">
                     <button id="generateRenderButton" class="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-magic mr-2"></i>
-                        Generate AI Render
+                        <i class="fas fa-image mr-2"></i>
+                        Generate New Environment
                     </button>
                     <input type="file" id="imageUpload" accept="image/png, image/jpeg" class="hidden">
                     <button id="uploadImageButton" class="px-4 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 transition-colors">
@@ -128,16 +129,41 @@
                         <i class="fas fa-search mr-2"></i>
                         Perform Structural Analysis
                     </button>
-                    <div class="w-auto px-4 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md flex items-center justify-center">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
+                    <button id="readAloudButton" class="w-auto px-4 py-3 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 transition-colors">
+                         <i class="fas fa-volume-up"></i> ✨ Read Aloud
+                    </button>
                 </div>
-                <div id="structuralOutputContainer" class="p-4 bg-white rounded-lg shadow-inner border border-gray-300 min-h-[100px] overflow-auto">
+                <div class="flex items-center space-x-2 mt-2">
+                    <button id="generateColorPaletteButton" class="w-full px-4 py-3 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 transition-colors">
+                        <i class="fas fa-swatchbook mr-2"></i>
+                        ✨ Generate Color Palette
+                    </button>
+                    <button id="generateDesignIdeasButton" class="w-full px-4 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        ✨ Get Design Suggestions
+                    </button>
+                </div>
+                <div class="flex items-center space-x-2 mt-2">
+                    <button id="designBriefButton" class="w-full px-4 py-3 bg-sky-600 text-white font-semibold rounded-lg shadow-md hover:bg-sky-700 transition-colors">
+                        <i class="fas fa-file-alt mr-2"></i>
+                        Create Design Brief
+                    </button>
+                    <button id="socialPostButton" class="w-full px-4 py-3 bg-rose-600 text-white font-semibold rounded-lg shadow-md hover:bg-rose-700 transition-colors">
+                        <i class="fas fa-share-alt mr-2"></i>
+                        ✨ Draft Social Post
+                    </button>
+                    <button id="critiqueButton" class="w-full px-4 py-3 bg-orange-500 text-white font-semibold rounded-lg shadow-md hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-comment-alt mr-2"></i>
+                        ✨ Critique Design
+                    </button>
+                </div>
+                <div id="structuralOutputContainer" class="p-4 bg-white rounded-lg shadow-inner border border-gray-300 min-h-[100px] overflow-auto relative">
                     <p class="text-gray-500">Analysis results will appear here after you upload an image and click 'Perform Structural Analysis'.</p>
                 </div>
             </div>
         </div>
     </div>
+    <audio id="audioPlayer" class="hidden"></audio>
 
     <script>
         const renderImageView = document.getElementById('renderImageView');
@@ -146,12 +172,19 @@
         const imageUpload = document.getElementById('imageUpload');
         const uploadImageButton = document.getElementById('uploadImageButton');
         const structuralAnalysisButton = document.getElementById('structuralAnalysisButton');
+        const designBriefButton = document.getElementById('designBriefButton');
+        const readAloudButton = document.getElementById('readAloudButton');
+        const generateColorPaletteButton = document.getElementById('generateColorPaletteButton');
+        const generateDesignIdeasButton = document.getElementById('generateDesignIdeasButton');
+        const socialPostButton = document.getElementById('socialPostButton');
+        const critiqueButton = document.getElementById('critiqueButton');
         const structuralOutputContainer = document.getElementById('structuralOutputContainer');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const messageBox = document.getElementById('messageBox');
         const downloadPdfButton = document.getElementById('downloadPdfButton');
         const downloadImageButton = document.getElementById('downloadImageButton');
         const clearRenderButton = document.getElementById('clearRenderButton');
+        const audioPlayer = document.getElementById('audioPlayer');
 
         let uploadedImageBase64 = null;
         let analysisReportText = '';
@@ -179,6 +212,7 @@
 
             do {
                 try {
+                    console.log(`Attempt ${retries + 1} to fetch data.`);
                     response = await fetch(url, {
                         method: 'POST',
                         headers: {
@@ -196,10 +230,11 @@
                     retries++;
                     console.error(`Fetch attempt ${retries} failed:`, error);
                     if (retries < maxRetries) {
-                        const delay = Math.pow(2, retries) * 1000;
+                        const delay = Math.pow(2, retries) * 16000; // Increased delay to be more robust
                         console.log(`Retrying in ${delay / 1000} seconds...`);
                         await new Promise(res => setTimeout(res, delay));
                     } else {
+                        console.error("Failed to fetch data after multiple retries.");
                         throw error;
                     }
                 }
@@ -207,6 +242,64 @@
 
             throw new Error("Failed to fetch data after multiple retries.");
         }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const byteRate = sampleRate * numChannels * bytesPerSample;
+            const blockAlign = numChannels * bytesPerSample;
+
+            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+            const view = new DataView(buffer);
+            let offset = 0;
+
+            function writeString(str) {
+                for (let i = 0; i < str.length; i++) {
+                    view.setUint8(offset++, str.charCodeAt(i));
+                }
+            }
+
+            writeString('RIFF'); // RIFF identifier
+            view.setUint32(offset, 36 + pcm16.length * 2, true); // file length
+            offset += 4;
+            writeString('WAVE'); // RIFF type
+            writeString('fmt '); // format chunk identifier
+            view.setUint32(offset, 16, true); // format chunk length
+            offset += 4;
+            view.setUint16(offset, 1, true); // audio format (1 = PCM)
+            offset += 2;
+            view.setUint16(offset, numChannels, true); // number of channels
+            offset += 2;
+            view.setUint32(offset, sampleRate, true); // sample rate
+            offset += 4;
+            view.setUint32(offset, byteRate, true); // byte rate
+            offset += 4;
+            view.setUint16(offset, blockAlign, true); // block align
+            offset += 2;
+            view.setUint16(offset, 16, true); // bits per sample
+            offset += 2;
+            writeString('data'); // data chunk identifier
+            view.setUint32(offset, pcm16.length * 2, true); // data chunk length
+            offset += 4;
+
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
 
         uploadImageButton.addEventListener('click', () => {
             imageUpload.click();
@@ -226,18 +319,16 @@
             };
             reader.readAsDataURL(file);
         });
-
+        
         generateRenderButton.addEventListener('click', async () => {
             const userPrompt = promptInput.value.trim();
-
-            let inputImageBase64 = uploadedImageBase64;
-            // Use the last rendered image as input if it exists and is not the placeholder
-            if (renderImageSrc && !renderImageSrc.includes('placehold.co')) {
-                inputImageBase64 = renderImageSrc.split(',')[1];
-            }
             
-            if (!inputImageBase64) {
-                showMessageBox('Please upload an image to render first.', 'error');
+            if (!uploadedImageBase64) {
+                showMessageBox('Please upload an image of your building first.', 'error');
+                return;
+            }
+            if (!userPrompt) {
+                showMessageBox('Please describe the new surroundings in the text box.', 'error');
                 return;
             }
 
@@ -245,22 +336,20 @@
             renderImageView.style.opacity = '0.5';
 
             try {
-                // Construct a new, more detailed prompt for greater drawing fidelity
-                const fidelityPrompt = "Render the design with the requested style, maintaining the exact layout, geometry, and all original entry points and structural elements without any changes or additions.";
-                const combinedPrompt = userPrompt ? `${userPrompt}. ${fidelityPrompt}` : fidelityPrompt;
+                // The prompt now explicitly instructs the model to build upon the current image.
+                const explicitPrompt = `Using the current image as a base, strictly maintain the structure and dimensions of the house or building. Do not add any new rooms, wings, or structural elements. The only part of the image that should change is the surroundings, which should be updated to include the following new elements: ${userPrompt}.`;
 
-                // The gemini-2.5-flash-image-preview model is used for image-to-image generation.
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: combinedPrompt },
-                            { inlineData: { mimeType: 'image/png', data: inputImageBase64 } }
+                            { text: explicitPrompt },
+                            { inlineData: { mimeType: 'image/png', data: uploadedImageBase64 } }
                         ]
                     }],
                     generationConfig: {
-                        responseModalities: ['IMAGE', 'TEXT']
-                    },
+                        responseModalities: ['IMAGE']
+                    }
                 };
                 
                 const response = await fetchWithRetry(apiUrl, payload);
@@ -273,10 +362,12 @@
 
                 renderImageSrc = `data:image/png;base64,${base64Data}`;
                 renderImageView.src = renderImageSrc;
-                showMessageBox('Render generated successfully!', 'success');
+                // Update the base64 for the next render
+                uploadedImageBase64 = base64Data;
+                showMessageBox('New environment generated successfully!', 'success');
 
             } catch (error) {
-                console.error("Error generating render:", error);
+                console.error("Error generating new environment:", error);
                 showMessageBox(`Error: ${error.message}`, 'error');
             } finally {
                 loadingIndicator.classList.add('hidden');
@@ -319,7 +410,15 @@
                 analysisReportText = analysisText;
                 let formattedOutput = marked.parse(analysisReportText);
                 
-                structuralOutputContainer.innerHTML = `<div class="p-4 bg-white rounded-lg shadow-md mt-4 prose max-w-none">${formattedOutput}</div>`;
+                structuralOutputContainer.innerHTML = `
+                    <h2 class="text-xl font-semibold mb-2">Structural Analysis Report</h2>
+                    <div class="p-4 bg-white rounded-lg shadow-md mt-4 prose max-w-none relative">
+                        ${formattedOutput}
+                        <button onclick="copyOutputText()" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-600 rounded-full shadow-md hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                `;
 
                 // Trigger MathJax rendering
                 if (window.MathJax) {
@@ -334,9 +433,358 @@
                 renderImageView.style.opacity = '1';
             }
         });
+        
+        designBriefButton.addEventListener('click', async () => {
+            let analysisImageBase64 = uploadedImageBase64;
+            if (renderImageSrc && !renderImageSrc.includes('placehold.co')) {
+                analysisImageBase64 = renderImageSrc.split(',')[1];
+            }
+
+            if (!analysisImageBase64) {
+                showMessageBox('Please upload an image first.', 'error');
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            renderImageView.style.opacity = '0.5';
+
+            try {
+                const userPrompt = "Generate a concise, professional design brief for the attached image. The brief should include a title, its intended purpose, key aesthetic elements, and a list of three potential materials. Format the response using Markdown. Do not use conversational filler, just provide the brief.";
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: userPrompt },
+                            { inlineData: { mimeType: 'image/png', data: analysisImageBase64 } }
+                        ]
+                    }],
+                    model: 'gemini-2.5-flash-preview-05-20'
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetchWithRetry(apiUrl, payload);
+                const result = await response.json();
+                const briefText = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'No brief could be generated.';
+
+                let formattedOutput = marked.parse(briefText);
+                
+                structuralOutputContainer.innerHTML = `
+                    <h2 class="text-xl font-semibold mb-2">Design Brief</h2>
+                    <div class="p-4 bg-white rounded-lg shadow-md mt-4 prose max-w-none relative">
+                        ${formattedOutput}
+                        <button onclick="copyOutputText()" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-600 rounded-full shadow-md hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error("Error creating design brief:", error);
+                structuralOutputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                renderImageView.style.opacity = '1';
+            }
+        });
+
+        readAloudButton.addEventListener('click', async () => {
+            if (!analysisReportText) {
+                showMessageBox('No analysis report to read. Please run a structural analysis first.', 'error');
+                return;
+            }
+
+            const promptText = `Please read the following text aloud: ${analysisReportText}`;
+
+            loadingIndicator.classList.remove('hidden');
+            renderImageView.style.opacity = '0.5';
+
+            try {
+                const payload = {
+                    contents: [{
+                        parts: [{ text: promptText }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: "Kore" }
+                            }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+                const response = await fetchWithRetry(apiUrl, payload);
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play();
+                    showMessageBox('Playing analysis report.', 'success');
+                } else {
+                    throw new Error("Invalid audio data received.");
+                }
+
+            } catch (error) {
+                console.error("Error reading aloud:", error);
+                showMessageBox(`Error: ${error.message}`, 'error');
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                renderImageView.style.opacity = '1';
+            }
+        });
+        
+        generateColorPaletteButton.addEventListener('click', async () => {
+            let imageBase64 = uploadedImageBase64;
+            if (renderImageSrc && !renderImageSrc.includes('placehold.co')) {
+                imageBase64 = renderImageSrc.split(',')[1];
+            }
+
+            if (!imageBase64) {
+                showMessageBox('Please upload an image first.', 'error');
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            renderImageView.style.opacity = '0.5';
+
+            try {
+                const prompt = "Analyze the dominant colors in this image. Provide a title, and a list of 5 to 6 hex codes with a short, descriptive name for each color. Format the response as a JSON object with 'title' and 'palette' keys. Do not include conversational text.";
+
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { mimeType: 'image/png', data: imageBase64 } }
+                        ]
+                    }],
+                    model: 'gemini-2.5-flash-preview-05-20',
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "title": { "type": "STRING" },
+                                "palette": {
+                                    "type": "ARRAY",
+                                    "items": {
+                                        "type": "OBJECT",
+                                        "properties": {
+                                            "name": { "type": "STRING" },
+                                            "hex": { "type": "STRING" }
+                                        },
+                                        "propertyOrdering": ["name", "hex"]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const response = await fetchWithRetry(apiUrl, payload);
+                const result = await response.json();
+                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                const paletteData = JSON.parse(jsonText);
+
+                if (!paletteData || !paletteData.palette) {
+                    throw new Error('Invalid palette data received.');
+                }
+
+                let paletteHTML = `<h2 class="text-xl font-semibold mb-4">${paletteData.title}</h2><div class="flex flex-wrap gap-4 mt-4">`;
+                paletteData.palette.forEach(color => {
+                    paletteHTML += `
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 rounded-full border-2 border-gray-300 shadow-lg" style="background-color: ${color.hex};"></div>
+                            <span class="mt-2 text-sm font-medium text-gray-700">${color.name}</span>
+                            <span class="text-xs text-gray-500">${color.hex}</span>
+                        </div>
+                    `;
+                });
+                paletteHTML += `</div>`;
+                
+                structuralOutputContainer.innerHTML = paletteHTML;
+
+            } catch (error) {
+                console.error("Error generating color palette:", error);
+                structuralOutputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                renderImageView.style.opacity = '1';
+            }
+        });
+        
+        generateDesignIdeasButton.addEventListener('click', async () => {
+            let imageBase64 = uploadedImageBase64;
+            if (renderImageSrc && !renderImageSrc.includes('placehold.co')) {
+                imageBase64 = renderImageSrc.split(',')[1];
+            }
+
+            if (!imageBase64) {
+                showMessageBox('Please upload an image first.', 'error');
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            renderImageView.style.opacity = '0.5';
+
+            try {
+                // New prompt to analyze surroundings and integrate them into the design
+                const prompt = "Analyze the architectural design and the natural surroundings in the attached image, identifying the key aesthetic elements of the environment (e.g., colors, textures, materials, shapes of nature). Propose design suggestions for the building that seamlessly integrate these 'beautiful surroundings.' Generate three unique, detailed text prompts that could be used to render an updated version of this design, showcasing the new, integrated elements. Format the response in Markdown with a clear heading for 'Architectural Integration with Surroundings' followed by a bulleted or numbered list of the new prompts for rendering. Do not include conversational filler, just provide the analysis and prompts.";
+                
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { mimeType: 'image/png', data: imageBase64 } }
+                        ]
+                    }],
+                    model: 'gemini-2.5-flash-preview-05-20'
+                };
+                
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const response = await fetchWithRetry(apiUrl, payload);
+                const result = await response.json();
+                const ideasText = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'No design suggestions could be generated.';
+
+                let formattedOutput = marked.parse(ideasText);
+                
+                structuralOutputContainer.innerHTML = `
+                    <h2 class="text-xl font-semibold mb-2">Design Suggestions</h2>
+                    <div class="p-4 bg-white rounded-lg shadow-md mt-4 prose max-w-none relative">
+                        ${formattedOutput}
+                        <button onclick="copyOutputText()" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-600 rounded-full shadow-md hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                `;
+            
+            } catch (error) {
+                console.error("Error generating design ideas:", error);
+                structuralOutputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                renderImageView.style.opacity = '1';
+            }
+        });
+        
+        socialPostButton.addEventListener('click', async () => {
+            let imageBase64 = uploadedImageBase64;
+            if (renderImageSrc && !renderImageSrc.includes('placehold.co')) {
+                imageBase64 = renderImageSrc.split(',')[1];
+            }
+
+            if (!imageBase64) {
+                showMessageBox('Please upload an image first.', 'error');
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            renderImageView.style.opacity = '0.5';
+
+            try {
+                const prompt = "Draft a creative and engaging social media post for this design. The post should include a compelling caption, relevant hashtags, and a clear call-to-action. Format the response using Markdown. Do not include conversational filler, just provide the post.";
+                
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { mimeType: 'image/png', data: imageBase64 } }
+                        ]
+                    }],
+                    model: 'gemini-2.5-flash-preview-05-20'
+                };
+                
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const response = await fetchWithRetry(apiUrl, payload);
+                const result = await response.json();
+                const postText = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'Could not generate a social media post.';
+
+                let formattedOutput = marked.parse(postText);
+                
+                structuralOutputContainer.innerHTML = `
+                    <h2 class="text-xl font-semibold mb-2">Drafted Social Post</h2>
+                    <div class="p-4 bg-white rounded-lg shadow-md mt-4 prose max-w-none relative">
+                        ${formattedOutput}
+                        <button onclick="copyOutputText()" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-600 rounded-full shadow-md hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                `;
+            
+            } catch (error) {
+                console.error("Error drafting social post:", error);
+                structuralOutputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                renderImageView.style.opacity = '1';
+            }
+        });
+
+        critiqueButton.addEventListener('click', async () => {
+            let imageBase64 = uploadedImageBase64;
+            if (renderImageSrc && !renderImageSrc.includes('placehold.co')) {
+                imageBase64 = renderImageSrc.split(',')[1];
+            }
+
+            if (!imageBase64) {
+                showMessageBox('Please upload an image first.', 'error');
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            renderImageView.style.opacity = '0.5';
+
+            try {
+                const prompt = "Provide a constructive design critique of the image. Identify 2-3 key strengths and 2-3 areas for improvement. Use markdown formatting to clearly separate the sections. Do not include conversational filler, just provide the critique.";
+                
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { mimeType: 'image/png', data: imageBase64 } }
+                        ]
+                    }],
+                    model: 'gemini-2.5-flash-preview-05-20'
+                };
+                
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const response = await fetchWithRetry(apiUrl, payload);
+                const result = await response.json();
+                const critiqueText = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'Could not generate a design critique.';
+
+                let formattedOutput = marked.parse(critiqueText);
+                
+                structuralOutputContainer.innerHTML = `
+                    <h2 class="text-xl font-semibold mb-2">Design Critique</h2>
+                    <div class="p-4 bg-white rounded-lg shadow-md mt-4 prose max-w-none relative">
+                        ${formattedOutput}
+                        <button onclick="copyOutputText()" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-600 rounded-full shadow-md hover:bg-gray-300 transition-colors">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                `;
+            
+            } catch (error) {
+                console.error("Error generating design critique:", error);
+                structuralOutputContainer.innerHTML = `<div class="p-4 bg-red-100 text-red-700 rounded-lg">Error: ${error.message}</div>`;
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                renderImageView.style.opacity = '1';
+            }
+        });
 
         downloadPdfButton.addEventListener('click', () => {
-            if (!renderImageSrc && !analysisReportText) {
+            if (!renderImageSrc && !structuralOutputContainer.textContent) {
                 showMessageBox('No report or render to download.', 'error');
                 return;
             }
@@ -358,12 +806,12 @@
                     }
                     doc.addImage(img, 'JPEG', 15, yOffset, imgWidth, imgHeight);
                     yOffset += imgHeight + 10;
-                    addTextToPdf(doc, analysisReportText, yOffset);
+                    addTextToPdf(doc, structuralOutputContainer.textContent, yOffset);
                     doc.save("Loveth_AI_Designer_Report.pdf");
                 };
                 img.src = renderImageSrc;
             } else {
-                addTextToPdf(doc, analysisReportText, yOffset);
+                addTextToPdf(doc, structuralOutputContainer.textContent, yOffset);
                 doc.save("Loveth_AI_Designer_Report.pdf");
             }
         });
@@ -395,9 +843,6 @@
             structuralOutputContainer.innerHTML = `<p class="text-gray-500">Analysis results will appear here after you upload an image and click 'Perform Structural Analysis'.</p>`;
             
             showMessageBox('Render and analysis cleared. Please upload a new image.', 'success');
-
-            // Trigger the file upload dialog
-            imageUpload.click();
         });
 
         function addTextToPdf(doc, text, yOffset) {
@@ -412,6 +857,28 @@
                     doc.text(line, 15, yOffset);
                     yOffset += 7; // Line height
                 });
+            }
+        }
+        
+        function copyOutputText() {
+            const container = document.querySelector('#structuralOutputContainer .prose');
+            if (!container) return;
+
+            // Use a temporary textarea to hold the content for copying
+            const tempTextArea = document.createElement('textarea');
+            // Remove button text from the copied content
+            tempTextArea.value = container.textContent.replace(/Copy/g, '').trim(); 
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showMessageBox('Text copied to clipboard!', 'success');
+            } catch (err) {
+                console.error('Failed to copy text', err);
+                showMessageBox('Failed to copy text. Please try again.', 'error');
+            } finally {
+                document.body.removeChild(tempTextArea);
             }
         }
     </script>
