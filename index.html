@@ -114,9 +114,44 @@
             <div id="messageBox" class="absolute top-4 w-auto max-w-sm p-4 rounded-lg text-white font-semibold shadow-xl transition-opacity duration-300 opacity-0 hidden"></div>
         </div>
 
-        <!-- Image Thumbnail Gallery -->
-        <div id="thumbnailContainer" class="w-full mt-4 flex flex-wrap gap-4 justify-center bg-gray-200 p-2 rounded-lg min-h-[110px]">
-             <p id="thumbnailPlaceholder" class="text-gray-500 self-center">Uploaded image thumbnails will appear here.</p>
+        <!-- Elevation Management -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-200 p-4 rounded-lg">
+            <!-- Front Elevation -->
+            <div class="text-center">
+                <p class="font-semibold text-gray-700">Front Elevation</p>
+                <div id="front-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveElevation('front')">
+                    <span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>
+                </div>
+                <input type="file" id="front-upload-input" class="hidden" accept="image/png, image/jpeg">
+                <button id="upload-front-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
+            </div>
+            <!-- Rear Elevation -->
+            <div class="text-center">
+                <p class="font-semibold text-gray-700">Rear Elevation</p>
+                <div id="rear-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveElevation('rear')">
+                     <span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>
+                </div>
+                <input type="file" id="rear-upload-input" class="hidden" accept="image/png, image/jpeg">
+                <button id="upload-rear-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
+            </div>
+            <!-- Left Elevation -->
+            <div class="text-center">
+                <p class="font-semibold text-gray-700">Left Elevation</p>
+                <div id="left-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveElevation('left')">
+                     <span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>
+                </div>
+                <input type="file" id="left-upload-input" class="hidden" accept="image/png, image/jpeg">
+                <button id="upload-left-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
+            </div>
+            <!-- Right Elevation -->
+            <div class="text-center">
+                <p class="font-semibold text-gray-700">Right Elevation</p>
+                <div id="right-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveElevation('right')">
+                     <span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>
+                </div>
+                <input type="file" id="right-upload-input" class="hidden" accept="image/png, image/jpeg">
+                <button id="upload-right-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -127,10 +162,6 @@
                     <button id="generateRenderButton" class="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors">
                         <i class="fas fa-image mr-2"></i>
                         Generate New Environment
-                    </button>
-                    <input type="file" id="imageUpload" accept="image/png, image/jpeg" class="hidden" multiple>
-                    <button id="uploadImageButton" class="px-4 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 transition-colors">
-                        <i class="fas fa-upload"></i>
                     </button>
                 </div>
             </div>
@@ -192,8 +223,6 @@
         const renderImageView = document.getElementById('renderImageView');
         const promptInput = document.getElementById('promptInput');
         const generateRenderButton = document.getElementById('generateRenderButton');
-        const imageUpload = document.getElementById('imageUpload');
-        const uploadImageButton = document.getElementById('uploadImageButton');
         const structuralAnalysisButton = document.getElementById('structuralAnalysisButton');
         const designBriefButton = document.getElementById('designBriefButton');
         const readAloudButton = document.getElementById('readAloudButton');
@@ -210,11 +239,37 @@
         const downloadImageButton = document.getElementById('downloadImageButton');
         const clearRenderButton = document.getElementById('clearRenderButton');
         const audioPlayer = document.getElementById('audioPlayer');
-        const thumbnailContainer = document.getElementById('thumbnailContainer');
-        const thumbnailPlaceholder = document.getElementById('thumbnailPlaceholder');
 
-        let uploadedImagesData = []; // To store { id, base64Data, fullSrc }
-        let activeImageId = null;
+        const elevationElements = {
+            front: {
+                thumbContainer: document.getElementById('front-thumb-container'),
+                uploadInput: document.getElementById('front-upload-input'),
+                uploadButton: document.getElementById('upload-front-button'),
+            },
+            rear: {
+                thumbContainer: document.getElementById('rear-thumb-container'),
+                uploadInput: document.getElementById('rear-upload-input'),
+                uploadButton: document.getElementById('upload-rear-button'),
+            },
+            left: {
+                thumbContainer: document.getElementById('left-thumb-container'),
+                uploadInput: document.getElementById('left-upload-input'),
+                uploadButton: document.getElementById('upload-left-button'),
+            },
+            right: {
+                thumbContainer: document.getElementById('right-thumb-container'),
+                uploadInput: document.getElementById('right-upload-input'),
+                uploadButton: document.getElementById('upload-right-button'),
+            },
+        };
+
+        let elevationImages = {
+            front: null, // will store { base64Data, fullSrc }
+            rear: null,
+            left: null,
+            right: null,
+        };
+        let activeImageId = null; // will be 'front', 'rear', 'left', or 'right'
         let analysisReportText = '';
         let renderImageSrc = '';
 
@@ -329,69 +384,71 @@
         }
 
 
-        uploadImageButton.addEventListener('click', () => {
-            imageUpload.click();
+        function handleImageUpload(elevationKey) {
+            const file = elevationElements[elevationKey].uploadInput.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const fullSrc = e.target.result;
+                const base64Data = fullSrc.split(',')[1];
+                
+                elevationImages[elevationKey] = { base64Data, fullSrc };
+
+                const thumbContainer = elevationElements[elevationKey].thumbContainer;
+                thumbContainer.innerHTML = `<img src="${fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
+                
+                setActiveElevation(elevationKey);
+                showMessageBox(`${elevationKey.charAt(0).toUpperCase() + elevationKey.slice(1)} image uploaded.`, 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        Object.keys(elevationElements).forEach(key => {
+            elevationElements[key].uploadButton.addEventListener('click', () => {
+                elevationElements[key].uploadInput.click();
+            });
+            elevationElements[key].uploadInput.addEventListener('change', () => {
+                handleImageUpload(key);
+            });
         });
 
-        imageUpload.addEventListener('change', async (event) => {
-            const files = event.target.files;
-            if (!files.length) return;
-
-            thumbnailPlaceholder.classList.add('hidden');
-
-            for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const fullSrc = e.target.result;
-                    const base64Data = fullSrc.split(',')[1];
-                    const imageId = `img-${Date.now()}-${Math.random()}`;
-                    
-                    uploadedImagesData.push({ id: imageId, base64Data: base64Data, fullSrc: fullSrc });
-
-                    // Create and append thumbnail
-                    const thumb = document.createElement('img');
-                    thumb.src = fullSrc;
-                    thumb.dataset.id = imageId;
-                    thumb.className = 'w-24 h-24 object-cover rounded-lg thumbnail-image';
-                    thumb.onclick = () => setActiveImage(imageId);
-                    thumbnailContainer.appendChild(thumb);
-                    
-                    // If it's the first image, make it active
-                    if (uploadedImagesData.length === 1) {
-                        setActiveImage(imageId);
-                    }
-                };
-                reader.readAsDataURL(file);
+        function setActiveElevation(elevationKey) {
+            // Only proceed if an image has been uploaded for this elevation
+            if (!elevationImages[elevationKey]) {
+                showMessageBox(`Please upload an image for the ${elevationKey} elevation first.`, 'error');
+                return;
             }
-            showMessageBox(`${files.length} image(s) uploaded successfully!`, 'success');
-            imageUpload.value = ''; // Reset file input
-        });
 
-        function setActiveImage(imageId) {
-            activeImageId = imageId;
-            const activeImageData = uploadedImagesData.find(img => img.id === imageId);
-            if (!activeImageData) return;
-
+            activeImageId = elevationKey;
+            const activeImageData = elevationImages[elevationKey];
+            
             renderImageView.src = activeImageData.fullSrc;
+            renderImageSrc = activeImageData.fullSrc; // Keep this in sync for downloads
             
             // Update active class on thumbnails
-            document.querySelectorAll('.thumbnail-image').forEach(thumb => {
-                if (thumb.dataset.id === imageId) {
-                    thumb.classList.add('active');
+            Object.keys(elevationElements).forEach(key => {
+                const container = elevationElements[key].thumbContainer;
+                if (key === elevationKey) {
+                    container.classList.add('border-blue-500', 'border-4');
+                    container.classList.remove('border-dashed');
                 } else {
-                    thumb.classList.remove('active');
+                    container.classList.remove('border-blue-500', 'border-4');
+                    if (!elevationImages[key]) {
+                        container.classList.add('border-dashed');
+                    }
                 }
             });
         }
         
         generateRenderButton.addEventListener('click', async () => {
             const userPrompt = promptInput.value.trim();
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            
-            if (!activeImageData) {
-                showMessageBox('Please upload and select an image first.', 'error');
+            if (!activeImageId || !elevationImages[activeImageId]) {
+                showMessageBox('Please upload and select an elevation image first.', 'error');
                 return;
             }
+            const activeImageData = elevationImages[activeImageId];
+            
             if (!userPrompt) {
                 showMessageBox('Please describe the new surroundings in the text box.', 'error');
                 return;
@@ -428,10 +485,9 @@
                 renderImageSrc = `data:image/png;base64,${base64Data}`;
                 renderImageView.src = renderImageSrc;
                 // Update the base64 of the active image for the next render
-                activeImageData.base64Data = base64Data;
-                activeImageData.fullSrc = renderImageSrc;
+                elevationImages[activeImageId] = { base64Data: base64Data, fullSrc: renderImageSrc };
                 // Update the thumbnail too
-                document.querySelector(`.thumbnail-image[data-id="${activeImageId}"]`).src = renderImageSrc;
+                elevationElements[activeImageId].thumbContainer.innerHTML = `<img src="${renderImageSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
                 showMessageBox('New environment generated successfully!', 'success');
 
             } catch (error) {
@@ -446,8 +502,7 @@
         structuralAnalysisButton.addEventListener('click', async () => {
             const userPrompt = "Analyze the structural and design elements of the image, including geometry, materials, and potential engineering challenges. Provide the analysis report in Markdown format, using LaTeX for all mathematical expressions. Do not use conversational filler, just provide the analysis report.";
             
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            const analysisImageBase64 = activeImageData?.base64Data;
+            const analysisImageBase64 = activeImageId ? elevationImages[activeImageId]?.base64Data : null;
 
             if (!analysisImageBase64) {
                 showMessageBox('Please upload and select an image first.', 'error');
@@ -501,8 +556,7 @@
         });
         
         designBriefButton.addEventListener('click', async () => {
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            const analysisImageBase64 = activeImageData?.base64Data;
+            const analysisImageBase64 = activeImageId ? elevationImages[activeImageId]?.base64Data : null;
 
             if (!analysisImageBase64) {
                 showMessageBox('Please upload and select an image first.', 'error');
@@ -608,8 +662,7 @@
         });
         
         generateColorPaletteButton.addEventListener('click', async () => {
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            const imageBase64 = activeImageData?.base64Data;
+            const imageBase64 = activeImageId ? elevationImages[activeImageId]?.base64Data : null;
 
             if (!imageBase64) {
                 showMessageBox('Please upload and select an image first.', 'error');
@@ -686,8 +739,7 @@
         });
         
         generateDesignIdeasButton.addEventListener('click', async () => {
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            const imageBase64 = activeImageData?.base64Data;
+            const imageBase64 = activeImageId ? elevationImages[activeImageId]?.base64Data : null;
 
             if (!imageBase64) {
                 showMessageBox('Please upload and select an image first.', 'error');
@@ -738,8 +790,7 @@
         });
         
         socialPostButton.addEventListener('click', async () => {
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            const imageBase64 = activeImageData?.base64Data;
+            const imageBase64 = activeImageId ? elevationImages[activeImageId]?.base64Data : null;
 
             if (!imageBase64) {
                 showMessageBox('Please upload and select an image first.', 'error');
@@ -789,8 +840,7 @@
         });
 
         critiqueButton.addEventListener('click', async () => {
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            const imageBase64 = activeImageData?.base64Data;
+            const imageBase64 = activeImageId ? elevationImages[activeImageId]?.base64Data : null;
 
             if (!imageBase64) {
                 showMessageBox('Please upload and select an image first.', 'error');
@@ -840,8 +890,7 @@
         });
 
         sustainabilityReportButton.addEventListener('click', async () => {
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            const imageBase64 = activeImageData?.base64Data;
+            const imageBase64 = activeImageId ? elevationImages[activeImageId]?.base64Data : null;
 
             if (!imageBase64) {
                 showMessageBox('Please upload and select an image first.', 'error');
@@ -891,8 +940,7 @@
         });
 
         costEstimationButton.addEventListener('click', async () => {
-            const activeImageData = uploadedImagesData.find(img => img.id === activeImageId);
-            const imageBase64 = activeImageData?.base64Data;
+            const imageBase64 = activeImageId ? elevationImages[activeImageId]?.base64Data : null;
 
             if (!imageBase64) {
                 showMessageBox('Please upload and select an image first.', 'error');
@@ -993,7 +1041,7 @@
 
         clearRenderButton.addEventListener('click', () => {
             // Reset state variables
-            uploadedImagesData = [];
+            elevationImages = { front: null, rear: null, left: null, right: null };
             activeImageId = null;
             renderImageSrc = '';
             analysisReportText = '';
@@ -1001,11 +1049,16 @@
             // Reset UI elements to their initial state
             renderImageView.src = 'https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here';
             structuralOutputContainer.innerHTML = `<p class="text-gray-500">Analysis results will appear here after you upload an image and click 'Perform Structural Analysis'.</p>`;
-            thumbnailContainer.innerHTML = ''; // Clear thumbnails
-            thumbnailPlaceholder.classList.remove('hidden');
-            thumbnailContainer.appendChild(thumbnailPlaceholder);
             
-            showMessageBox('Render and analysis cleared. Please upload a new image.', 'success');
+            // Reset elevation thumbnails
+            Object.keys(elevationElements).forEach(key => {
+                const thumbContainer = elevationElements[key].thumbContainer;
+                thumbContainer.innerHTML = `<span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>`;
+                thumbContainer.classList.remove('border-blue-500', 'border-4');
+                thumbContainer.classList.add('border-dashed');
+            });
+            
+            showMessageBox('Render and analysis cleared. Please upload new images.', 'success');
         });
 
         function addTextToPdf(doc, text, yOffset) {
@@ -1047,6 +1100,5 @@
     </script>
 </body>
 </html>
-
 
 
