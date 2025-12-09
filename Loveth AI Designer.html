@@ -298,7 +298,7 @@
 
         // --- State Variables ---
         let imageContent = {
-            img1: null, // will store { base64Data, fullSrc, originalBase64Data }
+            img1: null, // will store { base64Data (display), cleanBase64Data (no logo), fullSrc, originalBase64Data }
             img2: null,
             img3: null,
             img4: null,
@@ -307,6 +307,11 @@
         let analysisReportText = '';
         let renderImageSrc = '';
         let logoImageObj = null; // Stores the loaded logo image object
+
+        // NEW: Session State for Smart Rendering
+        let sessionMasterRender = null;
+        let sessionPrompt = '';
+        let sessionMasterSketchHash = '';
 
         const apiKey = ""; // The API key will be provided by the canvas environment
 
@@ -529,7 +534,13 @@
             reader.onload = (e) => {
                 const fullSrc = e.target.result;
                 const base64Data = fullSrc.split(',')[1];
-                imageContent[imageKey] = { base64Data: base64Data, fullSrc: fullSrc, originalBase64Data: base64Data };
+                // Initialize cleanBase64Data with the original sketch on upload
+                imageContent[imageKey] = { 
+                    base64Data: base64Data, 
+                    cleanBase64Data: base64Data, // Important: Start clean layer as the sketch
+                    fullSrc: fullSrc, 
+                    originalBase64Data: base64Data 
+                };
 
                 const thumbContainer = imageSlots[imageKey].thumbContainer;
                 thumbContainer.innerHTML = `<img src="${fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
@@ -609,6 +620,12 @@
             activeImageId = null;
             analysisReportText = '';
             renderImageSrc = '';
+            
+            // NEW: Clear Session State
+            sessionMasterRender = null;
+            sessionPrompt = '';
+            sessionMasterSketchHash = '';
+
             // Note: We deliberately do NOT clear logoImageObj so users don't have to re-upload logo every time.
 
             renderImageView.src = "https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here";
@@ -708,9 +725,18 @@
         }
 
         async function getStyleDescriptionFromImage(renderedImageBase64) {
-            const systemPrompt = `You are an expert architectural visualizer. Analyze the provided render. Create a detailed, descriptive text prompt that captures the essence of its style. Focus ONLY on materials, textures, lighting conditions, color palette, and overall atmosphere. **Ensure the description strongly emphasizes high-end, luxurious, and consistent styling to be applied to other viewpoints.**
-**CRITICAL RULE: DO NOT describe the building's shape, geometry, number of floors, windows, or any structural elements.** Your output should be a reusable style prompt.`;
-            const userQuery = "Describe the architectural style of this image for a new rendering prompt.";
+            // UPDATED PROMPT: Explicitly extracts Landscaping details to ensure flow without needing the image
+            const systemPrompt = `You are an expert architectural visualizer. Analyze the provided render. 
+Create a detailed, descriptive text prompt that captures the essence of its style. 
+
+**MANDATORY SECTIONS TO DESCRIBE:**
+1. **MATERIALS:** Exact colors and textures of walls, wood, glass, and metal.
+2. **LIGHTING:** Direction of sun, time of day (e.g., golden hour, soft morning), and shadow softness.
+3. **LANDSCAPING:** Specific types of plants, trees, grass color, and ground cover used in the image.
+4. **SKY:** Cloud coverage and sky color.
+
+**CRITICAL RULE:** DO NOT describe the building's shape, geometry, height, or volume. ONLY describe the "skin" and the "environment".`;
+            const userQuery = "Describe the style and environment of this image for a new rendering prompt.";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const parts = [{ text: userQuery }, { inlineData: { mimeType: 'image/png', data: renderedImageBase64 } }];
             const payload = { contents: [{ parts: parts }], systemInstruction: { parts: [{ text: systemPrompt }] } };
@@ -740,46 +766,82 @@
             renderImageView.style.opacity = '0.5';
 
             try {
+                // --- SMART SESSION LOGIC ---
+                
+                // 1. Determine if this is a "Fresh Start" or an "Iteration"
+                // We check if the current 'clean' data is different from the original sketch
+                const isIterativeMode = imageContent[masterImageKey].cleanBase64Data !== imageContent[masterImageKey].originalBase64Data;
+                const inputImageBase64 = imageContent[masterImageKey].cleanBase64Data; // Always use the latest clean state
+
+                let rawMasterRenderBase64 = null;
+                let styleDescription = '';
+
                 // Step 1: Render Master
-                showMessageBox('Step 1/4: Rendering Master Elevation...', 'info');
-                const masterPrompt = `**ARCHITECTURAL VISUALIZATION: STRUCTURE LOCKED, ENVIRONMENT UNLOCKED.**
+                if (isIterativeMode) {
+                    showMessageBox('Step 1/4: Refining existing Master Render (Iteration Mode)...', 'info');
+                    console.log("Smart Render: Iteration Mode Active.");
+
+                    // PROMPT FOR ITERATION (Editing the photo)
+                    const iterationPrompt = `**IMAGE EDITING / REFINEMENT MODE.**
+**INPUT:** An existing architectural render.
+**TASK:** Modify this image based on the user's request, while preserving the building's identity.
+
+**CONSTRAINTS:**
+1. **GEOMETRY SAFETY:** Do NOT change the structural shape of the building unless explicitly asked.
+2. **LAYERED EDITING:** Keep the existing details (landscaping, materials) unless the prompt asks to change them.
+3. **STYLE:** Maintain photorealism.
+
+**USER REQUEST:**
+'${userPrompt}'`;
+
+                    rawMasterRenderBase64 = await generateSingleImage(iterationPrompt, inputImageBase64);
+
+                } else {
+                    showMessageBox('Step 1/4: Generating New Master Render (Fresh Start)...', 'info');
+                    console.log("Smart Render: Fresh Start Mode.");
+
+                    // PROMPT FOR FRESH RENDER (Coloring Book Mode)
+                    const freshPrompt = `**ARCHITECTURAL VISUALIZATION: STRUCTURE LOCKED, ENVIRONMENT UNLOCKED.**
 **INPUT:** Architectural Line Drawing.
 **TASK:** Render the building materials strictly as drawn, BUT generate a high-quality environment around it.
 
 **1. BUILDING RULES (STRICT LOCK):**
 - **NO STRUCTURAL CHANGES:** Do NOT add windows, doors, or architectural features that are not in the sketch.
-- **SOLID WALLS:** Blank walls in the drawing must remain solid (e.g., concrete, plaster, brick).
+- **SOLID WALLS:** Blank walls in the drawing must remain solid.
 
 **2. ENVIRONMENT RULES (REQUIRED):**
-- **ADD LANDSCAPING:** You MUST add realistic vegetation (trees, shrubs, lawn) around the base and background.
-- **ADD ATMOSPHERE:** Generate a realistic sky, clouds, and lighting (e.g., sunlight shadows).
-- **NO WHITE VOIDS:** The drawing must be placed in a complete, realistic setting.
+- **ADD LANDSCAPING:** You MUST add realistic vegetation (trees, shrubs, lawn).
+- **ADD ATMOSPHERE:** Generate a realistic sky, clouds, and lighting.
 
 **USER DESIGN REQUEST:**
 '${userPrompt}'`;
-                
-                // Generated raw (clean) render
-                let rawMasterRenderBase64 = await generateSingleImage(masterPrompt, imageContent[masterImageKey].originalBase64Data);
-                
-                // Prepare display version (potentially with logo)
-                let finalMasterRenderBase64 = rawMasterRenderBase64;
 
-                // --- APPLY LOGO OVERLAY TO MASTER ---
+                    rawMasterRenderBase64 = await generateSingleImage(freshPrompt, inputImageBase64);
+                }
+                
+                // Update Session State & Apply Logo
+                let finalMasterRenderBase64 = rawMasterRenderBase64;
                 if (logoImageObj) {
                     finalMasterRenderBase64 = await applyLogoOverlay(rawMasterRenderBase64);
                 }
                 
                 const renderedMasterSrc = `data:image/png;base64,${finalMasterRenderBase64}`;
-                imageContent[masterImageKey] = { ...imageContent[masterImageKey], base64Data: finalMasterRenderBase64, fullSrc: renderedMasterSrc };
+                // Save both the Clean version (for next iteration) and the Display version
+                imageContent[masterImageKey] = { 
+                    ...imageContent[masterImageKey], 
+                    base64Data: finalMasterRenderBase64, 
+                    cleanBase64Data: rawMasterRenderBase64, // SAVE CLEAN VERSION
+                    fullSrc: renderedMasterSrc 
+                };
+                
                 imageSlots[masterImageKey].thumbContainer.innerHTML = `<img src="${renderedMasterSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
                 renderImageView.src = renderedMasterSrc;
                 renderImageSrc = renderedMasterSrc;
                 setActiveImage(masterImageKey);
 
-                // Step 2: Analyze Style
-                showMessageBox('Step 2/4: Analyzing master style...', 'info');
-                // Use the clean render for analysis to avoid logo interference
-                const styleDescription = await getStyleDescriptionFromImage(rawMasterRenderBase64);
+                // Step 2: Analyze Style (Always re-analyze the NEW master to keep flow updated)
+                showMessageBox('Step 2/4: Analyzing updated style...', 'info');
+                styleDescription = await getStyleDescriptionFromImage(rawMasterRenderBase64);
 
                 // Step 3: Render Others
                 const imagesToRender = ['img2', 'img3', 'img4'];
@@ -789,39 +851,67 @@
                     const key = imagesToRender[i];
                     if (imageContent[key]?.originalBase64Data) {
                         imagesRenderedCount++;
-                        showMessageBox(`Step 3/4: Applying Master Flow to Elevation ${key.charAt(3)}...`, 'info');
+                        showMessageBox(`Step 3/4: Updating Elevation ${key.charAt(3)}...`, 'info');
 
-                        // Updated prompt to explicitly use the master render as a visual reference for LANDSCAPE only
-                        const styleTransferPrompt = `**VISUAL STYLE TRANSFER: GEOMETRY LOCKED, LANDSCAPE COPIED.**
-**INPUT 1 (TARGET SHAPE):** The architectural drawing to be colored. (STRUCTURAL CONSTRAINT).
-**INPUT 2 (STYLE SOURCE):** The Master Render. (MATERIAL & LANDSCAPE REFERENCE).
+                        // For other elevations, we ALSO check if they have been rendered before.
+                        // If they have, we use their 'cleanBase64Data' as input to preserve their details too.
+                        const isChildIterative = imageContent[key].cleanBase64Data !== imageContent[key].originalBase64Data;
+                        const childInputBase64 = imageContent[key].cleanBase64Data;
 
-**CRITICAL INSTRUCTIONS:**
-1. **STRUCTURE (LOCKED):** You must color the building in INPUT 1 exactly as it is drawn. Do NOT change its shape to match INPUT 2.
-2. **MATERIALS:** Apply the wood, stone, and concrete textures from INPUT 2 onto the shapes of INPUT 1.
-3. **LANDSCAPING (MANDATORY):** Copy the environment (trees, grass, sky, lighting) from INPUT 2 and generate it around INPUT 1.
-4. **SYNTHESIS:** The result should look like the building from INPUT 1 sitting in the garden from INPUT 2.
+                        let styleTransferPrompt = '';
 
-**CONTEXT:** "${styleDescription}"`;
+                        if (isChildIterative) {
+                             // Refinement Prompt for Child Views
+                             styleTransferPrompt = `**UPDATE EXISTING RENDER.**
+**INPUT:** An existing render of a side elevation.
+**TASK:** Update the lighting/atmosphere/landscaping of the INPUT to match the description below.
+
+**CONSTRAINT:** 1. **ABSOLUTE GEOMETRY LOCK:** Do NOT change the building shape.
+2. **STYLE MATCH:** Ensure the materials and environment match the description.
+
+**MASTER STYLE DESCRIPTION:** "${styleDescription}"`;
+                        } else {
+                            // Fresh Render Prompt for Child Views
+                            styleTransferPrompt = `**STRICT TEXTURE MAPPING (NO GEOMETRY REFERENCE).**
+**INPUT:** Architectural Line Drawing (Target Geometry).
+**TASK:** Color this drawing using the specific style description below.
+
+**CRITICAL RULES:**
+1. **SHAPE IS LOCKED:** The input drawing determines the shape. Do NOT look at any other building.
+2. **COPY STYLE ONLY:** Apply the materials and landscaping described in the Context.
+3. **LANDSCAPING:** Generate the environment (trees/sky) described in the Context around this specific shape.
+
+**STYLE CONTEXT:** "${styleDescription}"`;
+                        }
                         
-                        // RESTORED rawMasterRenderBase64 so the AI can see the trees/sky to copy
-                        let renderedImageBase64 = await generateSingleImage(styleTransferPrompt, imageContent[key].originalBase64Data, rawMasterRenderBase64); 
+                        // CRITICAL FIX: Pass 'null' as the 3rd argument (Reference Image).
+                        // We rely ONLY on the 'styleDescription' text to prevent the AI from copying the Master's shape.
+                        let rawChildRenderBase64 = await generateSingleImage(styleTransferPrompt, childInputBase64, null); 
                         
-                        // --- APPLY LOGO OVERLAY TO OTHER ELEVATIONS ---
+                        // Apply Logo
+                        let finalChildRenderBase64 = rawChildRenderBase64;
                         if (logoImageObj) {
-                            renderedImageBase64 = await applyLogoOverlay(renderedImageBase64);
+                            finalChildRenderBase64 = await applyLogoOverlay(rawChildRenderBase64);
                         }
 
-                        const renderedSrc = `data:image/png;base64,${renderedImageBase64}`;
-                        imageContent[key] = { ...imageContent[key], base64Data: renderedImageBase64, fullSrc: renderedSrc };
+                        const renderedSrc = `data:image/png;base64,${finalChildRenderBase64}`;
+                        
+                        // Update Child State
+                        imageContent[key] = { 
+                            ...imageContent[key], 
+                            base64Data: finalChildRenderBase64, 
+                            cleanBase64Data: rawChildRenderBase64, // SAVE CLEAN VERSION
+                            fullSrc: renderedSrc 
+                        };
+                        
                         imageSlots[key].thumbContainer.innerHTML = `<img src="${renderedSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
                     }
                 }
 
                 if (imagesRenderedCount > 0) {
-                    showMessageBox('Step 4/4: All elevations rendered with consistent flow!', 'success');
+                    showMessageBox('All views updated and synchronized!', 'success');
                 } else {
-                    showMessageBox('Master elevation rendered. No other elevations were uploaded to style.', 'success');
+                    showMessageBox('Master view updated. Upload other elevations to sync them.', 'success');
                 }
             } catch (error) {
                 console.error('Full Render Error:', error);
