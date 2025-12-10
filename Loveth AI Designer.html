@@ -112,6 +112,10 @@
                     <i class="fas fa-file-pdf mr-2"></i>
                     Download PDF
                 </button>
+                <button id="undoButton" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 transition-colors">
+                    <i class="fas fa-undo mr-2"></i>
+                    Undo
+                </button>
                 <button id="clearRenderButton" class="px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition-colors">
                     <i class="fas fa-broom mr-2"></i>
                     Clear
@@ -267,6 +271,7 @@
         const downloadPdfButton = document.getElementById('downloadPdfButton');
         const downloadImageButton = document.getElementById('downloadImageButton');
         const clearRenderButton = document.getElementById('clearRenderButton');
+        const undoButton = document.getElementById('undoButton');
         const audioPlayer = document.getElementById('audioPlayer');
 
         // Logo Elements
@@ -312,10 +317,88 @@
         let sessionMasterRender = null;
         let sessionPrompt = '';
         let sessionMasterSketchHash = '';
+        
+        // NEW: History Stack for Undo
+        let historyStack = [];
 
         const apiKey = ""; // The API key will be provided by the canvas environment
 
         // --- Utility Functions ---
+
+        /**
+         * Saves the current state to the history stack.
+         */
+        function saveStateToHistory() {
+            const state = {
+                imageContent: JSON.parse(JSON.stringify(imageContent)), // Deep copy
+                activeImageId: activeImageId,
+                renderImageSrc: renderImageSrc,
+                sessionMasterRender: sessionMasterRender,
+                sessionPrompt: sessionPrompt,
+                sessionMasterSketchHash: sessionMasterSketchHash,
+                analysisReportText: analysisReportText
+            };
+            historyStack.push(state);
+            // Limit stack size to prevent memory issues (optional, e.g., last 10 actions)
+            if (historyStack.length > 10) historyStack.shift();
+            console.log("State saved. History stack size:", historyStack.length);
+        }
+
+        /**
+         * Restores the last state from the history stack.
+         */
+        function restoreStateFromHistory() {
+            if (historyStack.length === 0) {
+                showMessageBox('Nothing to undo.', 'info');
+                return;
+            }
+            
+            const state = historyStack.pop();
+            
+            // Restore variables
+            imageContent = state.imageContent;
+            activeImageId = state.activeImageId;
+            renderImageSrc = state.renderImageSrc;
+            sessionMasterRender = state.sessionMasterRender;
+            sessionPrompt = state.sessionPrompt;
+            sessionMasterSketchHash = state.sessionMasterSketchHash;
+            analysisReportText = state.analysisReportText;
+            
+            // Restore UI: Thumbnails
+            Object.keys(imageSlots).forEach(key => {
+                const data = imageContent[key];
+                const container = imageSlots[key].thumbContainer;
+                if (data) {
+                    container.innerHTML = `<img src="${data.fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
+                    container.classList.remove('border-dashed');
+                } else {
+                    container.innerHTML = `<span class="text-gray-400 text-sm pointer-events-none">Upload Elevation</span>`;
+                    container.classList.add('border-dashed');
+                }
+            });
+
+            // Restore UI: Main View
+            if (activeImageId && imageContent[activeImageId]) {
+                renderImageView.src = imageContent[activeImageId].fullSrc;
+                setActiveImage(activeImageId);
+            } else {
+                renderImageView.src = "https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here";
+                Object.keys(imageSlots).forEach(key => {
+                     imageSlots[key].thumbContainer.classList.remove('border-blue-500', 'border-4');
+                });
+            }
+            
+            // Restore UI: Output text area (if needed, though mainly handled by button clicks)
+            if (analysisReportText) {
+                 displayMarkdownOutput(analysisReportText);
+            } else {
+                 structuralOutputContainer.innerHTML = '<p class="text-gray-500">Analysis results will appear here after you upload an image and click an analysis button.</p>';
+            }
+
+            showMessageBox('Undo successful. Reverted to previous state.', 'success');
+        }
+
+        undoButton.addEventListener('click', restoreStateFromHistory);
 
         /**
          * Displays a temporary message box notification.
@@ -615,6 +698,9 @@
         });
 
         clearRenderButton.addEventListener('click', () => {
+            // Save state before clearing, so user can undo a clear!
+            saveStateToHistory();
+
             // Reset state
             imageContent = { img1: null, img2: null, img3: null, img4: null };
             activeImageId = null;
@@ -714,12 +800,19 @@
                 contents: [{ parts }], 
                 generationConfig: { 
                     responseModalities: ['IMAGE'],
-                    // CRITICAL UPDATE: If isStrict is true, drop temperature to 0.0 (Absolute Zero Creativity)
-                    temperature: isStrict ? 0.0 : 0.3 
+                    // CRITICAL UPDATE: Relax temperature slightly from 0.0 to 0.2 to avoid NO_IMAGE blocks
+                    temperature: isStrict ? 0.2 : 0.3 
                 } 
             };
             const response = await fetchWithRetry(apiUrl, payload);
             const result = await response.json();
+            
+            // Explicitly catch NO_IMAGE finish reason
+            if (result.candidates && result.candidates[0] && result.candidates[0].finishReason === 'NO_IMAGE') {
+                 console.warn("AI Generation blocked or failed (NO_IMAGE). Prompt might be unsafe or too complex.");
+                 throw new Error("AI refused to generate image. Please try a simpler prompt or avoid words related to destruction/violations.");
+            }
+
             const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
             if (!base64Data) throw new Error(`AI image generation failed. Response: ${JSON.stringify(result)}`);
             return base64Data;
@@ -763,6 +856,9 @@ Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT 
                 showMessageBox('Please describe the desired materials and style in the text box.', 'error');
                 return;
             }
+            
+            // SAVE STATE BEFORE RENDERING
+            saveStateToHistory();
 
             loadingIndicator.classList.remove('hidden');
             renderImageView.style.opacity = '0.5';
@@ -772,7 +868,8 @@ Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT 
                 
                 // DETECT "FIX" INTENT:
                 // If the user uses negative words, they likely want to scrap the current render and try the sketch again.
-                const fixKeywords = ['remove', 'no ', 'stop', 'fix', 'bad', 'wrong', 'change shape', 'too many', 'without'];
+                // UPDATED: Added more keywords based on user feedback
+                const fixKeywords = ['remove', 'no ', 'stop', 'fix', 'bad', 'wrong', 'change shape', 'too many', 'without', 'permission', 'adding', 'extra'];
                 const isFixRequest = fixKeywords.some(keyword => userPrompt.toLowerCase().includes(keyword));
 
                 // If it's a fix request, we force a Fresh Start (use original sketch), ignoring the 'clean' render.
@@ -804,25 +901,23 @@ Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT 
                     showMessageBox(modeMsg, 'info');
                     console.log("Smart Render: Fresh Start / Fix Mode.");
 
-                    // PROMPT FOR FRESH RENDER (Construction Diagram Mode)
-                    const freshPrompt = `**TASK: CONSTRUCTION MATERIAL VISUALIZATION.**
-**INPUT:** Technical Architectural Line Drawing.
-**ROLE:** You are a Construction Renderer. You follow the blueprints exactly.
+                    // PROMPT FOR FRESH RENDER (Monolithic Surface Mode)
+                    const freshPrompt = `**TASK: TEXTURE MAPPING ON BLIND WALLS.**
+**INPUT:** Architectural Line Drawing.
+**GOAL:** Render the defined surfaces as SOLID, UNBROKEN MASS.
 
-**BLUEPRINT RULES (NON-NEGOTIABLE):**
-1. **WALLS ARE SOLID:** Any area enclosed by lines that is white/blank is a SOLID LOAD-BEARING WALL. It is physically impossible to put a window there.
-2. **NO DEVIATION:** Render the geometry exactly as drawn. Do not "beautify" or "modernize" the shape.
-3. **MATERIAL ASSIGNMENT:**
-   - Apply: '${userPrompt}'
-   - Blank Rectangles = Solid Wall Material (Concrete/Plaster/Brick).
-   - Hatched Rectangles = Windows (ONLY if hatching/glass indication exists).
-   
-**FAIL CONDITION:** If you generate a window on a blank wall, the building collapses. Do not do it.
+**SURFACE DEFINITION RULES:**
+1. **BLIND WALLS:** The blank/white areas in the drawing represent "Blind Walls" (windowless architectural surfaces).
+2. **CONTINUOUS MATERIAL:** Render these areas as a continuous, uninterrupted expanse of material (e.g., concrete, stone, plaster).
+3. **NO PENETRATION:** Do not break the surface with windows, doors, or vents unless specifically drawn with detailed framing/hatching in the input.
+4. **GEOMETRY:** The black lines define the exact edges of the material. Fill inside them.
 
-**ENVIRONMENT:**
-Place this exact structure in a realistic setting (sky/trees) but DO NOT alter the structure itself.`;
+**MATERIAL INSTRUCTION:**
+- Apply: '${userPrompt}'
+- Ensure the material looks heavy and solid.
+- Environment: Realistic sky and plants around the solid structure.`;
 
-                    // STRICT MODE ENABLED (Temperature 0.0)
+                    // STRICT MODE ENABLED (Temperature 0.2)
                     rawMasterRenderBase64 = await generateSingleImage(freshPrompt, inputImageBase64, null, true);
                 }
                 
@@ -878,19 +973,19 @@ Place this exact structure in a realistic setting (sky/trees) but DO NOT alter t
                              
                              rawChildRenderBase64 = await generateSingleImage(styleTransferPrompt, childInputBase64, null, false); 
                         } else {
-                            // Fresh Render Prompt for Child Views
-                            styleTransferPrompt = `**TASK: TECHNICAL DIAGRAM TEXTURING.**
-**INPUT:** Technical Line Drawing (Fixed Geometry).
-**STYLE SOURCE:** Text Description below.
+                            // Fresh Render Prompt for Child Views (Monolithic)
+                            styleTransferPrompt = `**TASK: SOLID SURFACE TEXTURING.**
+**INPUT:** Line Drawing (Fixed Geometry).
+**STYLE:** Based on description below.
 
 **RULES:**
-1. **SOLID WALLS MANDATE:** Treat all blank spaces as opaque solid walls. NO GLASS unless drawn.
-2. **NO HALLUCINATIONS:** Do not add doors, vents, or details not present in the Input.
-3. **STYLE APPLICATION:** Apply these materials:
+1. **UNBROKEN SURFACES:** Treat blank areas as solid, heavy walls.
+2. **NO OPENINGS:** Do not render windows or doors on blank surfaces.
+3. **CONSISTENCY:** Apply the exact materials described below.
 
 **STYLE DESCRIPTION:** "${styleDescription}"`;
 
-                            // STRICT MODE ENABLED (Temperature 0.0)
+                            // STRICT MODE ENABLED (Temperature 0.2)
                             rawChildRenderBase64 = await generateSingleImage(styleTransferPrompt, childInputBase64, null, true); 
                         }
                         
