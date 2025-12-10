@@ -868,9 +868,41 @@ Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT 
 
                 // 4. Prepare Input (Use clean version to avoid logo burn-in)
                 const inputBase64 = imageContent[activeImageId].cleanBase64Data;
+                
+                // --- NEW: CROSS-REFERENCE LOGIC ---
+                // Check if user mentioned "Elevation X" or "View X" in their prompt
+                const refMatch = userPrompt.match(/(?:elevation|view|img)\s*([1-4])/i);
+                let referenceBase64 = null;
+                let editPrompt = '';
 
-                // 5. Construct Specific Edit Prompt
-                const editPrompt = `**SINGLE VIEW EDITING MODE.**
+                if (refMatch) {
+                    const refId = 'img' + refMatch[1];
+                    // Check if the referenced image exists
+                    if (imageContent[refId]?.cleanBase64Data) {
+                        console.log(`Cross-Reference Detected: Using ${refId} as source.`);
+                        referenceBase64 = imageContent[refId].cleanBase64Data;
+                        
+                        // 5a. Construct Cross-Reference Edit Prompt
+                        editPrompt = `**CROSS-REFERENCE EDITING MODE.**
+**INPUT:** Active View (Target for edit).
+**REFERENCE:** Elevation ${refMatch[1]} (Source of material/style).
+**USER INSTRUCTION:** "${userPrompt}"
+
+**TASK:**
+1. **IDENTIFY:** Look at the REFERENCE image to understand the specific feature mentioned (e.g., "floor tiles", "roof color").
+2. **TRANSFER:** Apply that EXACT material/style to the corresponding element in the INPUT image.
+3. **ISOLATE:** Change ONLY the requested element. Do not change the building shape or other existing materials of the INPUT.
+4. **PERSPECTIVE:** Adjust the texture to match the perspective of the INPUT view.`;
+
+                    } else {
+                        showMessageBox(`Warning: Elevation ${refMatch[1]} is empty. Proceeding without reference.`, 'info');
+                    }
+                }
+
+                // If no valid reference found/detected, use standard single edit prompt
+                if (!referenceBase64) {
+                    // 5b. Construct Specific Edit Prompt (Standard)
+                    editPrompt = `**SINGLE VIEW EDITING MODE.**
 **INPUT:** An architectural render.
 **USER INSTRUCTION:** ${userPrompt}
 
@@ -878,9 +910,11 @@ Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT 
 1. **LOCALIZED CHANGE:** Apply the user's instruction ONLY to the relevant area.
 2. **STRUCTURE LOCK:** Do NOT change the building's geometry or shape.
 3. **CONTEXT AWARE:** Ensure lighting and shadows of added elements match the scene.`;
+                }
 
-                // 6. Generate (Use standard temperature for edits to allow additions)
-                const newRawBase64 = await generateSingleImage(editPrompt, inputBase64, null, false);
+                // 6. Generate (Use standard temperature 0.3 to allow the transfer/addition)
+                // We pass referenceBase64 as the 3rd argument if it exists
+                const newRawBase64 = await generateSingleImage(editPrompt, inputBase64, referenceBase64, false);
 
                 // 7. Apply Logo
                 let finalBase64 = newRawBase64;
