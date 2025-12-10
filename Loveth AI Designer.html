@@ -703,7 +703,7 @@
 
         // --- AI Functions ---
 
-        async function generateSingleImage(prompt, baseImageBase64, styleReferenceImageBase64 = null) {
+        async function generateSingleImage(prompt, baseImageBase64, styleReferenceImageBase64 = null, isStrict = false) {
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
             const parts = [{ text: prompt }];
             parts.push({ inlineData: { mimeType: 'image/png', data: baseImageBase64 } });
@@ -714,7 +714,8 @@
                 contents: [{ parts }], 
                 generationConfig: { 
                     responseModalities: ['IMAGE'],
-                    temperature: 0.3 // Slightly increased to allow organic landscaping (trees/clouds) while keeping structure safe
+                    // CRITICAL UPDATE: If isStrict is true, drop temperature to 0.0 (Absolute Zero Creativity)
+                    temperature: isStrict ? 0.0 : 0.3 
                 } 
             };
             const response = await fetchWithRetry(apiUrl, payload);
@@ -726,16 +727,18 @@
 
         async function getStyleDescriptionFromImage(renderedImageBase64) {
             // UPDATED PROMPT: Aggressively filters out shape/geometry descriptions to prevent distortion
-            const systemPrompt = `You are a material and lighting specialist. Analyze the provided architectural render. 
-Your GOAL is to describe the "Surface Style" so it can be applied to a DIFFERENT building shape without changing that building's structure.
+            const systemPrompt = `You are a material specialist. Analyze the surface textures of this image.
+Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT shape without changing that shape.
 
 **STRICT OUTPUT RULES:**
-1. **DESCRIBE MATERIALS:** List the exact textures (e.g., "smooth white plaster," "vertical cedar siding," "black matte metal frames").
-2. **DESCRIBE LIGHTING:** Describe the sun angle, shadow softness, and color temperature (e.g., "warm golden hour," "soft overcast").
-3. **DESCRIBE VEGETATION:** Describe the type of plants/trees (e.g., "tropical palms," "temperate oaks").
-4. **FORBIDDEN TOPICS (CRITICAL):** DO NOT describe the building's shape, volume, height, roof style, or number of floors. NEVER say "two-story," "villa," "flat roof," or "modern home." ONLY describe the materials.`;
+1. **IGNORE GEOMETRY:** Do not describe the building's height, roof shape, windows, or doors.
+2. **FOCUS ON TEXTURES:** Describe the specific materials (e.g., "rough grey concrete," "polished mahogany," "matte black steel").
+3. **FOCUS ON LIGHT:** Describe the lighting atmosphere (e.g., "overcast soft light," "sharp afternoon sun").
+4. **FOCUS ON NATURE:** Describe the plants (e.g., "tall pine trees," "manicured lawn").
+
+**OUTPUT FORMAT:** A concise paragraph describing ONLY materials, light, and nature.`;
             
-            const userQuery = "Extract the material and lighting DNA of this image. Ignore geometry.";
+            const userQuery = "Extract the material and lighting palette. Ignore all architectural geometry.";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const parts = [{ text: userQuery }, { inlineData: { mimeType: 'image/png', data: renderedImageBase64 } }];
             const payload = { contents: [{ parts: parts }], systemInstruction: { parts: [{ text: systemPrompt }] } };
@@ -767,47 +770,60 @@ Your GOAL is to describe the "Surface Style" so it can be applied to a DIFFERENT
             try {
                 // --- SMART SESSION LOGIC ---
                 
-                // 1. Determine if this is a "Fresh Start" or an "Iteration"
-                // We check if the current 'clean' data is different from the original sketch
-                const isIterativeMode = imageContent[masterImageKey].cleanBase64Data !== imageContent[masterImageKey].originalBase64Data;
-                const inputImageBase64 = imageContent[masterImageKey].cleanBase64Data; // Always use the latest clean state
+                // DETECT "FIX" INTENT:
+                // If the user uses negative words, they likely want to scrap the current render and try the sketch again.
+                const fixKeywords = ['remove', 'no ', 'stop', 'fix', 'bad', 'wrong', 'change shape', 'too many', 'without'];
+                const isFixRequest = fixKeywords.some(keyword => userPrompt.toLowerCase().includes(keyword));
+
+                // If it's a fix request, we force a Fresh Start (use original sketch), ignoring the 'clean' render.
+                const forceFreshStart = isFixRequest;
+                
+                const isIterativeMode = !forceFreshStart && (imageContent[masterImageKey].cleanBase64Data !== imageContent[masterImageKey].originalBase64Data);
+                // Use Original Sketch if forcing fresh start, otherwise use the current clean layer
+                const inputImageBase64 = forceFreshStart ? imageContent[masterImageKey].originalBase64Data : imageContent[masterImageKey].cleanBase64Data; 
 
                 let rawMasterRenderBase64 = null;
                 let styleDescription = '';
 
                 // Step 1: Render Master
                 if (isIterativeMode) {
-                    showMessageBox('Step 1/4: Refining existing Master Render (Iteration Mode)...', 'info');
+                    showMessageBox('Step 1/4: Refining existing Master Render...', 'info');
                     console.log("Smart Render: Iteration Mode Active.");
 
-                    // PROMPT FOR ITERATION (Editing the photo)
                     const iterationPrompt = `**IMAGE EDITING MODE: ADD/MODIFY FEATURES.**
 **INPUT:** An existing architectural render.
 **TASK:** ${userPrompt}
 **CONSTRAINT:**
-1. **PRESERVE INTEGRITY:** Keep the building structure and perspective exactly as is. Only modify the specific elements requested (e.g., "add a car", "change sky").
+1. **PRESERVE INTEGRITY:** Keep the building structure and perspective exactly as is. Only modify the specific elements requested.
 2. **REALISM:** Ensure new elements cast correct shadows and match the lighting.`;
 
-                    rawMasterRenderBase64 = await generateSingleImage(iterationPrompt, inputImageBase64);
+                    rawMasterRenderBase64 = await generateSingleImage(iterationPrompt, inputImageBase64, null, false);
 
                 } else {
-                    showMessageBox('Step 1/4: Generating New Master Render (Fresh Start)...', 'info');
-                    console.log("Smart Render: Fresh Start Mode.");
+                    const modeMsg = forceFreshStart ? 'Step 1/4: Re-rendering from Sketch (Fix Mode)...' : 'Step 1/4: Surface Finishing Master Elevation...';
+                    showMessageBox(modeMsg, 'info');
+                    console.log("Smart Render: Fresh Start / Fix Mode.");
 
-                    // PROMPT FOR FRESH RENDER (Strict Structure)
-                    const freshPrompt = `**STRICT STRUCTURAL PRESERVATION MODE.**
-**INPUT:** Architectural Line Drawing.
-**TASK:** Apply photorealistic materials to this EXACT geometry.
+                    // PROMPT FOR FRESH RENDER (Construction Diagram Mode)
+                    const freshPrompt = `**TASK: CONSTRUCTION MATERIAL VISUALIZATION.**
+**INPUT:** Technical Architectural Line Drawing.
+**ROLE:** You are a Construction Renderer. You follow the blueprints exactly.
 
-**CRITICAL RULES:**
-1. **GEOMETRY LOCK:** The input lines are immutable boundaries. You MUST NOT add, remove, or warp any walls or roofs.
-2. **NO HALLUCINATIONS:** If a wall is blank, render it as a solid material. Do NOT add windows or doors.
-3. **ENVIRONMENT:** Add the requested landscaping around the building, but do not let trees obscure the main architectural lines unless necessary.
+**BLUEPRINT RULES (NON-NEGOTIABLE):**
+1. **WALLS ARE SOLID:** Any area enclosed by lines that is white/blank is a SOLID LOAD-BEARING WALL. It is physically impossible to put a window there.
+2. **NO DEVIATION:** Render the geometry exactly as drawn. Do not "beautify" or "modernize" the shape.
+3. **MATERIAL ASSIGNMENT:**
+   - Apply: '${userPrompt}'
+   - Blank Rectangles = Solid Wall Material (Concrete/Plaster/Brick).
+   - Hatched Rectangles = Windows (ONLY if hatching/glass indication exists).
+   
+**FAIL CONDITION:** If you generate a window on a blank wall, the building collapses. Do not do it.
 
-**USER REQUEST:**
-'${userPrompt}'`;
+**ENVIRONMENT:**
+Place this exact structure in a realistic setting (sky/trees) but DO NOT alter the structure itself.`;
 
-                    rawMasterRenderBase64 = await generateSingleImage(freshPrompt, inputImageBase64);
+                    // STRICT MODE ENABLED (Temperature 0.0)
+                    rawMasterRenderBase64 = await generateSingleImage(freshPrompt, inputImageBase64, null, true);
                 }
                 
                 // Update Session State & Apply Logo
@@ -817,11 +833,10 @@ Your GOAL is to describe the "Surface Style" so it can be applied to a DIFFERENT
                 }
                 
                 const renderedMasterSrc = `data:image/png;base64,${finalMasterRenderBase64}`;
-                // Save both the Clean version (for next iteration) and the Display version
                 imageContent[masterImageKey] = { 
                     ...imageContent[masterImageKey], 
                     base64Data: finalMasterRenderBase64, 
-                    cleanBase64Data: rawMasterRenderBase64, // SAVE CLEAN VERSION
+                    cleanBase64Data: rawMasterRenderBase64, 
                     fullSrc: renderedMasterSrc 
                 };
                 
@@ -830,8 +845,8 @@ Your GOAL is to describe the "Surface Style" so it can be applied to a DIFFERENT
                 renderImageSrc = renderedMasterSrc;
                 setActiveImage(masterImageKey);
 
-                // Step 2: Analyze Style (Always re-analyze the NEW master to keep flow updated)
-                showMessageBox('Step 2/4: Analyzing updated style...', 'info');
+                // Step 2: Analyze Style 
+                showMessageBox('Step 2/4: Analyzing surface materials...', 'info');
                 styleDescription = await getStyleDescriptionFromImage(rawMasterRenderBase64);
 
                 // Step 3: Render Others
@@ -844,10 +859,9 @@ Your GOAL is to describe the "Surface Style" so it can be applied to a DIFFERENT
                         imagesRenderedCount++;
                         showMessageBox(`Step 3/4: Updating Elevation ${key.charAt(3)}...`, 'info');
 
-                        // For other elevations, we ALSO check if they have been rendered before.
-                        // If they have, we use their 'cleanBase64Data' as input to preserve their details too.
-                        const isChildIterative = imageContent[key].cleanBase64Data !== imageContent[key].originalBase64Data;
-                        const childInputBase64 = imageContent[key].cleanBase64Data;
+                        // Also force child views to reset if we are in fix mode
+                        const isChildIterative = !forceFreshStart && (imageContent[key].cleanBase64Data !== imageContent[key].originalBase64Data);
+                        const childInputBase64 = forceFreshStart ? imageContent[key].originalBase64Data : imageContent[key].cleanBase64Data;
 
                         let styleTransferPrompt = '';
 
@@ -855,29 +869,30 @@ Your GOAL is to describe the "Surface Style" so it can be applied to a DIFFERENT
                              // Refinement Prompt for Child Views
                              styleTransferPrompt = `**UPDATE EXISTING RENDER.**
 **INPUT:** An existing render of a side elevation.
-**TASK:** Update the lighting/atmosphere/landscaping to match the Master Style description below.
+**TASK:** Update the lighting/atmosphere/landscaping to match the description below.
 
 **CONSTRAINT:** 1. **ABSOLUTE GEOMETRY LOCK:** Do NOT change the building shape.
 2. **ADDITIONS:** If the user asked for features (like "add a car") in the prompt ('${userPrompt}'), add them now.
 
 **MASTER STYLE DNA:** "${styleDescription}"`;
+                             
+                             rawChildRenderBase64 = await generateSingleImage(styleTransferPrompt, childInputBase64, null, false); 
                         } else {
                             // Fresh Render Prompt for Child Views
-                            styleTransferPrompt = `**STRICT "COLORING BOOK" MODE.**
-**INPUT:** Architectural Line Drawing (Target Geometry).
-**TASK:** Paint this specific drawing using the materials described below.
+                            styleTransferPrompt = `**TASK: TECHNICAL DIAGRAM TEXTURING.**
+**INPUT:** Technical Line Drawing (Fixed Geometry).
+**STYLE SOURCE:** Text Description below.
 
-**CRITICAL RULES:**
-1. **SHAPE IS SUPREME:** The Input drawing dictates the shape 100%. Do not look for implied 3D forms. Just color the 2D shapes provided.
-2. **MATERIAL TRANSFER:** Apply the materials from the Description to the surfaces in the Input.
-3. **LANDSCAPING:** Generate the environment (trees/sky) described in the Description.
+**RULES:**
+1. **SOLID WALLS MANDATE:** Treat all blank spaces as opaque solid walls. NO GLASS unless drawn.
+2. **NO HALLUCINATIONS:** Do not add doors, vents, or details not present in the Input.
+3. **STYLE APPLICATION:** Apply these materials:
 
 **STYLE DESCRIPTION:** "${styleDescription}"`;
+
+                            // STRICT MODE ENABLED (Temperature 0.0)
+                            rawChildRenderBase64 = await generateSingleImage(styleTransferPrompt, childInputBase64, null, true); 
                         }
-                        
-                        // CRITICAL FIX: Pass 'null' as the 3rd argument (Reference Image).
-                        // We rely ONLY on the 'styleDescription' text to prevent the AI from copying the Master's shape.
-                        let rawChildRenderBase64 = await generateSingleImage(styleTransferPrompt, childInputBase64, null); 
                         
                         // Apply Logo
                         let finalChildRenderBase64 = rawChildRenderBase64;
@@ -887,11 +902,10 @@ Your GOAL is to describe the "Surface Style" so it can be applied to a DIFFERENT
 
                         const renderedSrc = `data:image/png;base64,${finalChildRenderBase64}`;
                         
-                        // Update Child State
                         imageContent[key] = { 
                             ...imageContent[key], 
                             base64Data: finalChildRenderBase64, 
-                            cleanBase64Data: rawChildRenderBase64, // SAVE CLEAN VERSION
+                            cleanBase64Data: rawChildRenderBase64, 
                             fullSrc: renderedSrc 
                         };
                         
