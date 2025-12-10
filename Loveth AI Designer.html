@@ -725,18 +725,17 @@
         }
 
         async function getStyleDescriptionFromImage(renderedImageBase64) {
-            // UPDATED PROMPT: Explicitly extracts Landscaping details to ensure flow without needing the image
-            const systemPrompt = `You are an expert architectural visualizer. Analyze the provided render. 
-Create a detailed, descriptive text prompt that captures the essence of its style. 
+            // UPDATED PROMPT: Aggressively filters out shape/geometry descriptions to prevent distortion
+            const systemPrompt = `You are a material and lighting specialist. Analyze the provided architectural render. 
+Your GOAL is to describe the "Surface Style" so it can be applied to a DIFFERENT building shape without changing that building's structure.
 
-**MANDATORY SECTIONS TO DESCRIBE:**
-1. **MATERIALS:** Exact colors and textures of walls, wood, glass, and metal.
-2. **LIGHTING:** Direction of sun, time of day (e.g., golden hour, soft morning), and shadow softness.
-3. **LANDSCAPING:** Specific types of plants, trees, grass color, and ground cover used in the image.
-4. **SKY:** Cloud coverage and sky color.
-
-**CRITICAL RULE:** DO NOT describe the building's shape, geometry, height, or volume. ONLY describe the "skin" and the "environment".`;
-            const userQuery = "Describe the style and environment of this image for a new rendering prompt.";
+**STRICT OUTPUT RULES:**
+1. **DESCRIBE MATERIALS:** List the exact textures (e.g., "smooth white plaster," "vertical cedar siding," "black matte metal frames").
+2. **DESCRIBE LIGHTING:** Describe the sun angle, shadow softness, and color temperature (e.g., "warm golden hour," "soft overcast").
+3. **DESCRIBE VEGETATION:** Describe the type of plants/trees (e.g., "tropical palms," "temperate oaks").
+4. **FORBIDDEN TOPICS (CRITICAL):** DO NOT describe the building's shape, volume, height, roof style, or number of floors. NEVER say "two-story," "villa," "flat roof," or "modern home." ONLY describe the materials.`;
+            
+            const userQuery = "Extract the material and lighting DNA of this image. Ignore geometry.";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const parts = [{ text: userQuery }, { inlineData: { mimeType: 'image/png', data: renderedImageBase64 } }];
             const payload = { contents: [{ parts: parts }], systemInstruction: { parts: [{ text: systemPrompt }] } };
@@ -782,17 +781,12 @@ Create a detailed, descriptive text prompt that captures the essence of its styl
                     console.log("Smart Render: Iteration Mode Active.");
 
                     // PROMPT FOR ITERATION (Editing the photo)
-                    const iterationPrompt = `**IMAGE EDITING / REFINEMENT MODE.**
+                    const iterationPrompt = `**IMAGE EDITING MODE: ADD/MODIFY FEATURES.**
 **INPUT:** An existing architectural render.
-**TASK:** Modify this image based on the user's request, while preserving the building's identity.
-
-**CONSTRAINTS:**
-1. **GEOMETRY SAFETY:** Do NOT change the structural shape of the building unless explicitly asked.
-2. **LAYERED EDITING:** Keep the existing details (landscaping, materials) unless the prompt asks to change them.
-3. **STYLE:** Maintain photorealism.
-
-**USER REQUEST:**
-'${userPrompt}'`;
+**TASK:** ${userPrompt}
+**CONSTRAINT:**
+1. **PRESERVE INTEGRITY:** Keep the building structure and perspective exactly as is. Only modify the specific elements requested (e.g., "add a car", "change sky").
+2. **REALISM:** Ensure new elements cast correct shadows and match the lighting.`;
 
                     rawMasterRenderBase64 = await generateSingleImage(iterationPrompt, inputImageBase64);
 
@@ -800,20 +794,17 @@ Create a detailed, descriptive text prompt that captures the essence of its styl
                     showMessageBox('Step 1/4: Generating New Master Render (Fresh Start)...', 'info');
                     console.log("Smart Render: Fresh Start Mode.");
 
-                    // PROMPT FOR FRESH RENDER (Coloring Book Mode)
-                    const freshPrompt = `**ARCHITECTURAL VISUALIZATION: STRUCTURE LOCKED, ENVIRONMENT UNLOCKED.**
+                    // PROMPT FOR FRESH RENDER (Strict Structure)
+                    const freshPrompt = `**STRICT STRUCTURAL PRESERVATION MODE.**
 **INPUT:** Architectural Line Drawing.
-**TASK:** Render the building materials strictly as drawn, BUT generate a high-quality environment around it.
+**TASK:** Apply photorealistic materials to this EXACT geometry.
 
-**1. BUILDING RULES (STRICT LOCK):**
-- **NO STRUCTURAL CHANGES:** Do NOT add windows, doors, or architectural features that are not in the sketch.
-- **SOLID WALLS:** Blank walls in the drawing must remain solid.
+**CRITICAL RULES:**
+1. **GEOMETRY LOCK:** The input lines are immutable boundaries. You MUST NOT add, remove, or warp any walls or roofs.
+2. **NO HALLUCINATIONS:** If a wall is blank, render it as a solid material. Do NOT add windows or doors.
+3. **ENVIRONMENT:** Add the requested landscaping around the building, but do not let trees obscure the main architectural lines unless necessary.
 
-**2. ENVIRONMENT RULES (REQUIRED):**
-- **ADD LANDSCAPING:** You MUST add realistic vegetation (trees, shrubs, lawn).
-- **ADD ATMOSPHERE:** Generate a realistic sky, clouds, and lighting.
-
-**USER DESIGN REQUEST:**
+**USER REQUEST:**
 '${userPrompt}'`;
 
                     rawMasterRenderBase64 = await generateSingleImage(freshPrompt, inputImageBase64);
@@ -864,24 +855,24 @@ Create a detailed, descriptive text prompt that captures the essence of its styl
                              // Refinement Prompt for Child Views
                              styleTransferPrompt = `**UPDATE EXISTING RENDER.**
 **INPUT:** An existing render of a side elevation.
-**TASK:** Update the lighting/atmosphere/landscaping of the INPUT to match the description below.
+**TASK:** Update the lighting/atmosphere/landscaping to match the Master Style description below.
 
 **CONSTRAINT:** 1. **ABSOLUTE GEOMETRY LOCK:** Do NOT change the building shape.
-2. **STYLE MATCH:** Ensure the materials and environment match the description.
+2. **ADDITIONS:** If the user asked for features (like "add a car") in the prompt ('${userPrompt}'), add them now.
 
-**MASTER STYLE DESCRIPTION:** "${styleDescription}"`;
+**MASTER STYLE DNA:** "${styleDescription}"`;
                         } else {
                             // Fresh Render Prompt for Child Views
-                            styleTransferPrompt = `**STRICT TEXTURE MAPPING (NO GEOMETRY REFERENCE).**
+                            styleTransferPrompt = `**STRICT "COLORING BOOK" MODE.**
 **INPUT:** Architectural Line Drawing (Target Geometry).
-**TASK:** Color this drawing using the specific style description below.
+**TASK:** Paint this specific drawing using the materials described below.
 
 **CRITICAL RULES:**
-1. **SHAPE IS LOCKED:** The input drawing determines the shape. Do NOT look at any other building.
-2. **COPY STYLE ONLY:** Apply the materials and landscaping described in the Context.
-3. **LANDSCAPING:** Generate the environment (trees/sky) described in the Context around this specific shape.
+1. **SHAPE IS SUPREME:** The Input drawing dictates the shape 100%. Do not look for implied 3D forms. Just color the 2D shapes provided.
+2. **MATERIAL TRANSFER:** Apply the materials from the Description to the surfaces in the Input.
+3. **LANDSCAPING:** Generate the environment (trees/sky) described in the Description.
 
-**STYLE CONTEXT:** "${styleDescription}"`;
+**STYLE DESCRIPTION:** "${styleDescription}"`;
                         }
                         
                         // CRITICAL FIX: Pass 'null' as the 3rd argument (Reference Image).
