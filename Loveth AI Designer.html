@@ -323,87 +323,77 @@
         let sessionPrompt = '';
         let sessionMasterSketchHash = '';
         
-        // NEW: History Stack for Undo
-        let historyStack = [];
+        // UPDATED: Per-Elevation History Stacks
+        let elevationHistory = {
+            img1: [],
+            img2: [],
+            img3: [],
+            img4: []
+        };
 
         const apiKey = ""; // The API key will be provided by the canvas environment
 
         // --- Utility Functions ---
 
         /**
-         * Saves the current state to the history stack.
+         * Saves the current state of specific images to their respective history stacks.
+         * @param {Array<string>} keys - Array of image keys ('img1', 'img2', etc.) to save.
          */
-        function saveStateToHistory() {
-            const state = {
-                imageContent: JSON.parse(JSON.stringify(imageContent)), // Deep copy
-                activeImageId: activeImageId,
-                renderImageSrc: renderImageSrc,
-                sessionMasterRender: sessionMasterRender,
-                sessionPrompt: sessionPrompt,
-                sessionMasterSketchHash: sessionMasterSketchHash,
-                analysisReportText: analysisReportText
-            };
-            historyStack.push(state);
-            // Limit stack size to prevent memory issues (optional, e.g., last 10 actions)
-            if (historyStack.length > 10) historyStack.shift();
-            console.log("State saved. History stack size:", historyStack.length);
+        function saveToHistory(keys) {
+            keys.forEach(key => {
+                if (imageContent[key]) {
+                    // Push a deep copy of the specific image content to its stack
+                    elevationHistory[key].push(JSON.parse(JSON.stringify(imageContent[key])));
+                    // Limit stack size (last 10 steps per image)
+                    if (elevationHistory[key].length > 10) elevationHistory[key].shift();
+                }
+            });
+            console.log(`History saved for: ${keys.join(', ')}`);
         }
 
         /**
-         * Restores the last state from the history stack.
+         * Restores the last state for the CURRENTLY HIGHLIGHTED elevation.
          */
-        function restoreStateFromHistory() {
-            if (historyStack.length === 0) {
-                showMessageBox('Nothing to undo.', 'info');
+        function undoHighlightedElevation() {
+            if (!activeImageId) {
+                showMessageBox('Please select (highlight) an elevation to undo.', 'error');
                 return;
             }
-            
-            const state = historyStack.pop();
-            
-            // Restore variables
-            imageContent = state.imageContent;
-            activeImageId = state.activeImageId;
-            renderImageSrc = state.renderImageSrc;
-            sessionMasterRender = state.sessionMasterRender;
-            sessionPrompt = state.sessionPrompt;
-            sessionMasterSketchHash = state.sessionMasterSketchHash;
-            analysisReportText = state.analysisReportText;
-            
-            // Restore UI: Thumbnails
-            Object.keys(imageSlots).forEach(key => {
-                const data = imageContent[key];
-                const container = imageSlots[key].thumbContainer;
-                if (data) {
-                    container.innerHTML = `<img src="${data.fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
-                    container.classList.remove('border-dashed');
-                } else {
-                    container.innerHTML = `<span class="text-gray-400 text-sm pointer-events-none">Upload Elevation</span>`;
-                    container.classList.add('border-dashed');
-                }
-            });
 
-            // Restore UI: Main View
-            if (activeImageId && imageContent[activeImageId]) {
-                renderImageView.src = imageContent[activeImageId].fullSrc;
-                setActiveImage(activeImageId);
-            } else {
-                renderImageView.src = "https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here";
-                Object.keys(imageSlots).forEach(key => {
-                     imageSlots[key].thumbContainer.classList.remove('border-blue-500', 'border-4');
-                });
-            }
-            
-            // Restore UI: Output text area (if needed, though mainly handled by button clicks)
-            if (analysisReportText) {
-                 displayMarkdownOutput(analysisReportText);
-            } else {
-                 structuralOutputContainer.innerHTML = '<p class="text-gray-500">Analysis results will appear here after you upload an image and click an analysis button.</p>';
+            const stack = elevationHistory[activeImageId];
+            if (stack.length === 0) {
+                showMessageBox(`No history found for Elevation ${activeImageId.charAt(3)}.`, 'info');
+                return;
             }
 
-            showMessageBox('Undo successful. Reverted to previous state.', 'success');
+            // Pop the previous state
+            const prevData = stack.pop();
+            
+            // Restore Data
+            imageContent[activeImageId] = prevData;
+
+            // Update UI: Thumbnail
+            const container = imageSlots[activeImageId].thumbContainer;
+            container.innerHTML = `<img src="${prevData.fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
+            container.classList.remove('border-dashed');
+
+            // Update UI: Main View
+            renderImageView.src = prevData.fullSrc;
+            renderImageSrc = prevData.fullSrc;
+
+            // SPECIAL LOGIC: Sync Session Master if we undid the Master Elevation
+            if (activeImageId === 'img1') {
+                console.log("Undoing Master: Syncing session state...");
+                // Restore the session master to the 'clean' version of the restored image
+                sessionMasterRender = prevData.cleanBase64Data;
+                // Note: We don't revert sessionPrompt to avoid confusing the user's text box, 
+                // but internal flow will now use the restored image as the style reference.
+            }
+
+            showMessageBox(`Undid changes to Elevation ${activeImageId.charAt(3)}.`, 'success');
         }
 
-        undoButton.addEventListener('click', restoreStateFromHistory);
+        undoButton.addEventListener('click', undoHighlightedElevation);
 
         /**
          * Displays a temporary message box notification.
@@ -703,8 +693,8 @@
         });
 
         clearRenderButton.addEventListener('click', () => {
-            // Save state before clearing, so user can undo a clear!
-            saveStateToHistory();
+            // Save state of ALL images before clearing
+            saveToHistory(['img1', 'img2', 'img3', 'img4']);
 
             // Reset state
             imageContent = { img1: null, img2: null, img3: null, img4: null };
@@ -712,7 +702,7 @@
             analysisReportText = '';
             renderImageSrc = '';
             
-            // NEW: Clear Session State
+            // Clear Session State
             sessionMasterRender = null;
             sessionPrompt = '';
             sessionMasterSketchHash = '';
@@ -729,7 +719,7 @@
                 container.classList.add('border-dashed');
                 imageSlots[key].uploadInput.value = ''; 
             });
-            showMessageBox('All elevations and renders cleared. Logo retained.', 'info');
+            showMessageBox('All elevations cleared. (Undo available per view)', 'info');
         });
 
         downloadPdfButton.addEventListener('click', () => {
@@ -866,8 +856,8 @@ Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT 
                 return;
             }
 
-            // 2. Save State for Undo
-            saveStateToHistory();
+            // 2. SAVE HISTORY FOR ACTIVE VIEW ONLY
+            saveToHistory([activeImageId]);
 
             // 3. UI Prep
             loadingIndicator.classList.remove('hidden');
@@ -939,8 +929,8 @@ Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT 
                 return;
             }
             
-            // SAVE STATE BEFORE RENDERING
-            saveStateToHistory();
+            // SAVE HISTORY FOR ALL VIEWS (Since Render All changes everyone)
+            saveToHistory(['img1', 'img2', 'img3', 'img4']);
 
             loadingIndicator.classList.remove('hidden');
             renderImageView.style.opacity = '0.5';
