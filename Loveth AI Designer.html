@@ -26,7 +26,6 @@
         }
 
         .prose {
-            /* Basic styling for markdown-rendered output */
             max-width: 100%;
         }
         
@@ -97,7 +96,6 @@
                 <i class="fas fa-palette text-blue-500 mr-3"></i>
                 Loveth AI Designer
             </h1>
-            <!-- Added Upload Logo Button here -->
             <div class="flex flex-wrap gap-2 mt-4 md:mt-0 justify-end">
                 <input type="file" id="logoUploadInput" class="hidden" accept="image/png, image/jpeg">
                 <button id="uploadLogoButton" class="px-4 py-2 bg-pink-500 text-white font-semibold rounded-lg shadow-md hover:bg-pink-600 transition-colors">
@@ -123,7 +121,6 @@
             </div>
         </div>
 
-        <!-- Render View and User Input -->
         <div class="relative w-full aspect-video border-4 border-gray-300 rounded-lg overflow-hidden shadow-inner bg-gray-200 flex items-center justify-center">
             <img id="renderImageView" class="w-full h-full object-contain p-2" src="https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here" alt="AI Generated Render">
             <div id="loadingIndicator" class="absolute inset-0 bg-gray-900 bg-opacity-70 flex flex-col items-center justify-center text-white text-lg font-semibold hidden">
@@ -133,9 +130,7 @@
             <div id="messageBox" class="absolute top-4 w-auto max-w-sm p-4 rounded-lg text-white font-semibold shadow-xl transition-opacity duration-300 opacity-0 hidden"></div>
         </div>
 
-        <!-- Image Management -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-200 p-4 rounded-lg">
-            <!-- Elevation 1 (Master) -->
             <div class="text-center">
                 <p class="font-semibold text-gray-700">Elevation 1 (Master)</p>
                 <div id="img1-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveImage('img1')">
@@ -144,7 +139,6 @@
                 <input type="file" id="img1-upload-input" class="hidden" accept="image/png, image/jpeg">
                 <button id="upload-img1-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
             </div>
-            <!-- Elevation 2 -->
             <div class="text-center">
                 <p class="font-semibold text-gray-700">Elevation 2</p>
                 <div id="img2-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveImage('img2')">
@@ -153,7 +147,6 @@
                 <input type="file" id="img2-upload-input" class="hidden" accept="image/png, image/jpeg">
                 <button id="upload-img2-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
             </div>
-            <!-- Elevation 3 -->
             <div class="text-center">
                 <p class="font-semibold text-gray-700">Elevation 3</p>
                 <div id="img3-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveImage('img3')">
@@ -162,7 +155,6 @@
                 <input type="file" id="img3-upload-input" class="hidden" accept="image/png, image/jpeg">
                 <button id="upload-img3-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
             </div>
-            <!-- Elevation 4 -->
             <div class="text-center">
                 <p class="font-semibold text-gray-700">Elevation 4</p>
                 <div id="img4-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveImage('img4')">
@@ -173,7 +165,6 @@
             </div>
         </div>
         
-        <!-- Workflow Guidance -->
         <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg text-blue-800">
             <p class="font-bold">Architectural Workflow:</p>
             <p class="text-sm mt-1">1. Click <b class="text-pink-600">Upload Logo</b> (top right) to add your company branding.</p>
@@ -183,7 +174,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Left Side: Prompt Input and Image Upload -->
             <div class="space-y-4">
                 <textarea id="promptInput" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none" placeholder="Describe the desired materials, lighting, and environment (e.g., 'Modernist style with brushed concrete, warm oak cladding, and soft morning light')."></textarea>
                 <div class="flex flex-col space-y-2">
@@ -198,7 +188,6 @@
                 </div>
             </div>
 
-            <!-- Right Side: Analysis and Output -->
             <div class="space-y-4">
                 <div class="flex items-center space-x-2">
                     <button id="structuralAnalysisButton" class="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors">
@@ -206,7 +195,6 @@
                         Perform Image Analysis
                     </button>
                 </div>
-                <!-- Read Aloud button remains, Copy button is now placed dynamically inside the output box -->
                 <div class="flex items-center space-x-2 mt-2">
                     <button id="readAloudButton" class="w-full px-4 py-3 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 transition-colors">
                          <i class="fas fa-volume-up mr-2"></i> Read Aloud
@@ -246,7 +234,6 @@
                         ✨ Estimate Project Cost
                     </button>
                 </div>
-                <!-- The Copy button will be absolutely positioned inside this container -->
                 <div id="structuralOutputContainer" class="p-4 bg-white rounded-lg shadow-inner border border-gray-300 min-h-[100px] overflow-auto relative">
                     <p class="text-gray-500">Analysis results will appear here after you upload an image and click an analysis button.</p>
                 </div>
@@ -256,7 +243,6 @@
     <audio id="audioPlayer" class="hidden"></audio>
 
     <script>
-        // --- DOM Elements ---
         const renderImageView = document.getElementById('renderImageView');
         const promptInput = document.getElementById('promptInput');
         const generateRenderButton = document.getElementById('generateRenderButton');
@@ -279,7 +265,6 @@
         const editActiveViewButton = document.getElementById('editActiveViewButton');
         const audioPlayer = document.getElementById('audioPlayer');
 
-        // Logo Elements
         const logoUploadInput = document.getElementById('logoUploadInput');
         const uploadLogoButton = document.getElementById('uploadLogoButton');
 
@@ -306,24 +291,21 @@
             },
         };
 
-        // --- State Variables ---
         let imageContent = {
-            img1: null, // will store { base64Data (display), cleanBase64Data (no logo), fullSrc, originalBase64Data }
+            img1: null,
             img2: null,
             img3: null,
             img4: null,
         };
-        let activeImageId = null; // 'img1', 'img2', 'img3', or 'img4'
+        let activeImageId = null; 
         let analysisReportText = '';
         let renderImageSrc = '';
-        let logoImageObj = null; // Stores the loaded logo image object
+        let logoImageObj = null; 
 
-        // NEW: Session State for Smart Rendering
         let sessionMasterRender = null;
         let sessionPrompt = '';
         let sessionMasterSketchHash = '';
         
-        // UPDATED: Per-Elevation History Stacks
         let elevationHistory = {
             img1: [],
             img2: [],
@@ -331,29 +313,17 @@
             img4: []
         };
 
-        const apiKey = ""; // The API key will be provided by the canvas environment
+        const apiKey = ""; 
 
-        // --- Utility Functions ---
-
-        /**
-         * Saves the current state of specific images to their respective history stacks.
-         * @param {Array<string>} keys - Array of image keys ('img1', 'img2', etc.) to save.
-         */
         function saveToHistory(keys) {
             keys.forEach(key => {
                 if (imageContent[key]) {
-                    // Push a deep copy of the specific image content to its stack
                     elevationHistory[key].push(JSON.parse(JSON.stringify(imageContent[key])));
-                    // Limit stack size (last 10 steps per image)
                     if (elevationHistory[key].length > 10) elevationHistory[key].shift();
                 }
             });
-            console.log(`History saved for: ${keys.join(', ')}`);
         }
 
-        /**
-         * Restores the last state for the CURRENTLY HIGHLIGHTED elevation.
-         */
         function undoHighlightedElevation() {
             if (!activeImageId) {
                 showMessageBox('Please select (highlight) an elevation to undo.', 'error');
@@ -366,28 +336,18 @@
                 return;
             }
 
-            // Pop the previous state
             const prevData = stack.pop();
-            
-            // Restore Data
             imageContent[activeImageId] = prevData;
 
-            // Update UI: Thumbnail
             const container = imageSlots[activeImageId].thumbContainer;
             container.innerHTML = `<img src="${prevData.fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
             container.classList.remove('border-dashed');
 
-            // Update UI: Main View
             renderImageView.src = prevData.fullSrc;
             renderImageSrc = prevData.fullSrc;
 
-            // SPECIAL LOGIC: Sync Session Master if we undid the Master Elevation
             if (activeImageId === 'img1') {
-                console.log("Undoing Master: Syncing session state...");
-                // Restore the session master to the 'clean' version of the restored image
                 sessionMasterRender = prevData.cleanBase64Data;
-                // Note: We don't revert sessionPrompt to avoid confusing the user's text box, 
-                // but internal flow will now use the restored image as the style reference.
             }
 
             showMessageBox(`Undid changes to Elevation ${activeImageId.charAt(3)}.`, 'success');
@@ -395,9 +355,6 @@
 
         undoButton.addEventListener('click', undoHighlightedElevation);
 
-        /**
-         * Displays a temporary message box notification.
-         */
         function showMessageBox(message, type = 'info') {
             messageBox.textContent = message;
             messageBox.className = `absolute top-4 w-auto max-w-sm p-4 rounded-lg text-white font-semibold shadow-xl transition-opacity duration-300 opacity-100 block ${
@@ -411,9 +368,6 @@
             }, 3300);
         }
         
-        /**
-         * Handles API calls with exponential backoff for retries.
-         */
         async function fetchWithRetry(url, payload) {
             const maxRetries = 3;
             let retries = 0;
@@ -423,9 +377,7 @@
                 try {
                     response = await fetch(url, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
@@ -437,7 +389,7 @@
                 } catch (error) {
                     retries++;
                     if (retries < maxRetries) {
-                        const delay = Math.pow(2, retries) * 1000; // 2s, 4s, 8s delay
+                        const delay = Math.pow(2, retries) * 1000;
                         await new Promise(res => setTimeout(res, delay));
                     } else {
                         console.error("Failed to fetch data after multiple retries.", error);
@@ -446,8 +398,6 @@
                 }
             } while (retries < maxRetries);
         }
-
-        // --- Logo Handling Functions ---
 
         uploadLogoButton.addEventListener('click', () => logoUploadInput.click());
 
@@ -466,12 +416,6 @@
             reader.readAsDataURL(file);
         });
 
-        /**
-         * Composites the logo onto the given base64 image string.
-         * Applies "remove white background" logic to the logo before drawing.
-         * @param {string} base64Image The rendered building image (no data prefix).
-         * @returns {Promise<string>} New base64 image (no data prefix) with logo.
-         */
         async function applyLogoOverlay(base64Image) {
             if (!logoImageObj) return base64Image;
 
@@ -483,22 +427,16 @@
                 mainImg.onload = () => {
                     canvas.width = mainImg.width;
                     canvas.height = mainImg.height;
-                    
-                    // 1. Draw the main rendered image
                     ctx.drawImage(mainImg, 0, 0);
                     
-                    // 2. Prepare the Logo
-                    // Resize logo to ~15% of the main image width
                     const targetLogoWidth = canvas.width * 0.15;
                     const scaleFactor = targetLogoWidth / logoImageObj.width;
                     const targetLogoHeight = logoImageObj.height * scaleFactor;
                     
-                    // Position: Top Right with 2% padding
                     const padding = canvas.width * 0.02;
                     const x = canvas.width - targetLogoWidth - padding;
                     const y = padding;
 
-                    // 3. Process Logo Transparency (Remove White Background)
                     const tempCanvas = document.createElement('canvas');
                     tempCanvas.width = logoImageObj.width;
                     tempCanvas.height = logoImageObj.height;
@@ -508,101 +446,78 @@
                     const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
                     const data = imgData.data;
                     
-                    // Loop through pixels to find white/near-white and make them transparent
                     for(let i=0; i < data.length; i+=4) {
-                        const r = data[i];
-                        const g = data[i+1];
-                        const b = data[i+2];
-                        // Threshold for white (e.g., > 230)
-                        if(r > 230 && g > 230 && b > 230) {
-                            data[i+3] = 0; // Set Alpha to 0
-                        }
+                        const r = data[i], g = data[i+1], b = data[i+2];
+                        if(r > 230 && g > 230 && b > 230) data[i+3] = 0;
                     }
                     tempCtx.putImageData(imgData, 0, 0);
-
-                    // 4. Draw the processed logo onto the main canvas
                     ctx.drawImage(tempCanvas, x, y, targetLogoWidth, targetLogoHeight);
-                    
-                    // Return raw base64 string (remove data prefix for consistency with flow)
                     resolve(canvas.toDataURL('image/png').split(',')[1]);
                 };
-                
-                // Set source for main image
                 mainImg.src = `data:image/png;base64,${base64Image}`;
             });
         }
 
-        // --- Standard Audio Helpers ---
         function base64ToArrayBuffer(base64) {
             const binaryString = window.atob(base64);
             const len = binaryString.length;
             const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
+            for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
             return bytes.buffer;
         }
 
         function pcmToWav(pcm16, sampleRate) {
-            const numChannels = 1;
-            const bytesPerSample = 2;
+            const numChannels = 1, bytesPerSample = 2;
             const byteRate = sampleRate * numChannels * bytesPerSample;
             const blockAlign = numChannels * bytesPerSample;
             const buffer = new ArrayBuffer(44 + pcm16.length * 2);
             const view = new DataView(buffer);
             let offset = 0;
-            function writeString(str) {
-                for (let i = 0; i < str.length; i++) {
-                    view.setUint8(offset++, str.charCodeAt(i));
-                }
-            }
+            function writeString(str) { for (let i = 0; i < str.length; i++) view.setUint8(offset++, str.charCodeAt(i)); }
             writeString('RIFF');
-            view.setUint32(offset, 36 + pcm16.length * 2, true);
-            offset += 4;
-            writeString('WAVE');
-            writeString('fmt ');
-            view.setUint32(offset, 16, true);
-            offset += 4;
-            view.setUint16(offset, 1, true);
-            offset += 2;
-            view.setUint16(offset, numChannels, true);
-            offset += 2;
-            view.setUint32(offset, sampleRate, true);
-            offset += 4;
-            view.setUint32(offset, byteRate, true);
-            offset += 4;
-            view.setUint16(offset, blockAlign, true);
-            offset += 2;
-            view.setUint16(offset, 16, true);
-            offset += 2;
+            view.setUint32(offset, 36 + pcm16.length * 2, true); offset += 4;
+            writeString('WAVE'); writeString('fmt ');
+            view.setUint32(offset, 16, true); offset += 4;
+            view.setUint16(offset, 1, true); offset += 2;
+            view.setUint16(offset, numChannels, true); offset += 2;
+            view.setUint32(offset, sampleRate, true); offset += 4;
+            view.setUint32(offset, byteRate, true); offset += 4;
+            view.setUint16(offset, blockAlign, true); offset += 2;
+            view.setUint16(offset, 16, true); offset += 2;
             writeString('data');
-            view.setUint32(offset, pcm16.length * 2, true);
-            offset += 4;
-            for (let i = 0; i < pcm16.length; i++) {
-                view.setInt16(offset, pcm16[i], true);
-                offset += 2;
-            }
+            view.setUint32(offset, pcm16.length * 2, true); offset += 4;
+            for (let i = 0; i < pcm16.length; i++) { view.setInt16(offset, pcm16[i], true); offset += 2; }
             return new Blob([view], { type: 'audio/wav' });
         }
 
         function displayMarkdownOutput(markdownText) {
             analysisReportText = markdownText;
-            const copyButtonHTML = `
-                <button id="dynamicCopyButton" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg shadow-md hover:bg-gray-300 transition-colors z-10">
-                    <i class="fas fa-copy mr-1"></i> Copy
-                </button>
-            `;
+            const copyButtonHTML = `<button id="dynamicCopyButton" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg shadow-md hover:bg-gray-300 transition-colors z-10"><i class="fas fa-copy mr-1"></i> Copy</button>`;
             structuralOutputContainer.innerHTML = copyButtonHTML + `<div class="prose pt-8">${marked.parse(markdownText)}</div>`;
             const dynamicCopyButton = document.getElementById('dynamicCopyButton');
-            if (dynamicCopyButton) {
-                dynamicCopyButton.addEventListener('click', copyReportToClipboard);
-            }
-            if (window.MathJax) {
-                window.MathJax.typesetPromise([structuralOutputContainer]);
-            }
+            if (dynamicCopyButton) dynamicCopyButton.addEventListener('click', () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = analysisReportText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showMessageBox('Copied to clipboard!', 'success');
+            });
+            if (window.MathJax) window.MathJax.typesetPromise([structuralOutputContainer]);
         }
 
-        // --- Image and UI Handlers ---
+        function setActiveImage(imageKey) {
+            activeImageId = imageKey;
+            Object.keys(imageSlots).forEach(key => {
+                imageSlots[key].thumbContainer.classList.remove('active');
+            });
+            imageSlots[imageKey].thumbContainer.classList.add('active');
+            if (imageContent[imageKey]) {
+                renderImageView.src = imageContent[imageKey].fullSrc;
+                renderImageSrc = imageContent[imageKey].fullSrc;
+            }
+        }
 
         function handleImageUpload(imageKey) {
             const file = imageSlots[imageKey].uploadInput.files[0];
@@ -612,17 +527,15 @@
             reader.onload = (e) => {
                 const fullSrc = e.target.result;
                 const base64Data = fullSrc.split(',')[1];
-                // Initialize cleanBase64Data with the original sketch on upload
                 imageContent[imageKey] = { 
                     base64Data: base64Data, 
-                    cleanBase64Data: base64Data, // Important: Start clean layer as the sketch
+                    cleanBase64Data: base64Data,
                     fullSrc: fullSrc, 
                     originalBase64Data: base64Data 
                 };
 
                 const thumbContainer = imageSlots[imageKey].thumbContainer;
                 thumbContainer.innerHTML = `<img src="${fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
-                
                 setActiveImage(imageKey);
                 showMessageBox(`Elevation ${imageKey.charAt(3)} uploaded.`, 'success');
             };
@@ -633,643 +546,7 @@
             imageSlots[key].uploadButton.addEventListener('click', () => {
                 imageSlots[key].uploadInput.click();
             });
-            imageSlots[key].uploadInput.addEventListener('change', () => {
-                handleImageUpload(key);
-            });
-        });
-
-        function setActiveImage(imageKey) {
-            if (!imageContent[imageKey]) {
-                if (activeImageId === imageKey) {
-                    renderImageView.src = "https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here";
-                    renderImageSrc = '';
-                    activeImageId = null;
-                }
-                Object.keys(imageSlots).forEach(key => {
-                    const container = imageSlots[key].thumbContainer;
-                    container.classList.remove('border-blue-500', 'border-4');
-                    if (!imageContent[key]) {
-                        container.classList.add('border-dashed');
-                    } else {
-                        container.classList.remove('border-dashed');
-                    }
-                });
-                return;
-            }
-
-            activeImageId = imageKey;
-            const activeImageData = imageContent[imageKey];
-            renderImageView.src = activeImageData.fullSrc;
-            renderImageSrc = activeImageData.fullSrc; 
-            
-            Object.keys(imageSlots).forEach(key => {
-                const container = imageSlots[key].thumbContainer;
-                if (key === imageKey) {
-                    container.classList.add('border-blue-500', 'border-4');
-                    container.classList.remove('border-dashed');
-                } else {
-                    container.classList.remove('border-blue-500', 'border-4');
-                    if (!imageContent[key]) {
-                        container.classList.add('border-dashed');
-                    } else {
-                        container.classList.remove('border-dashed');
-                    }
-                }
-            });
-        }
-        
-        downloadImageButton.addEventListener('click', () => {
-            if (renderImageSrc.startsWith('data:image')) {
-                const link = document.createElement('a');
-                link.href = renderImageSrc;
-                link.download = `loveth-ai-render-${activeImageId || 'full'}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showMessageBox('Image download started.', 'success');
-            } else {
-                showMessageBox('No rendered image to download. Generate a render first!', 'error');
-            }
-        });
-
-        clearRenderButton.addEventListener('click', () => {
-            // Save state of ALL images before clearing
-            saveToHistory(['img1', 'img2', 'img3', 'img4']);
-
-            // Reset state
-            imageContent = { img1: null, img2: null, img3: null, img4: null };
-            activeImageId = null;
-            analysisReportText = '';
-            renderImageSrc = '';
-            
-            // Clear Session State
-            sessionMasterRender = null;
-            sessionPrompt = '';
-            sessionMasterSketchHash = '';
-
-            // Note: We deliberately do NOT clear logoImageObj so users don't have to re-upload logo every time.
-
-            renderImageView.src = "https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here";
-            structuralOutputContainer.innerHTML = '<p class="text-gray-500">Analysis results will appear here after you upload an image and click an analysis button.</p>';
-
-            Object.keys(imageSlots).forEach(key => {
-                const container = imageSlots[key].thumbContainer;
-                container.innerHTML = `<span class="text-gray-400 text-sm pointer-events-none">Upload Elevation</span>`;
-                container.classList.remove('border-blue-500', 'border-4');
-                container.classList.add('border-dashed');
-                imageSlots[key].uploadInput.value = ''; 
-            });
-            showMessageBox('All elevations cleared. (Undo available per view)', 'info');
-        });
-
-        downloadPdfButton.addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            let y = 10;
-            const margin = 10;
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-
-            doc.setFontSize(22);
-            doc.text("Loveth AI Designer Report", margin, y);
-            y += 10;
-            doc.setFontSize(12);
-            doc.text(`Date: ${new Date().toLocaleDateString()}`, margin, y);
-            y += 10;
-
-            doc.setLineWidth(0.5);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 5;
-
-            if (renderImageSrc.startsWith('data:image')) {
-                const imgWidth = pageWidth - 2 * margin;
-                const imgHeight = (imgWidth / 16) * 9;
-                doc.setFontSize(16);
-                doc.text("Current Render View", margin, y);
-                y += 5;
-                doc.addImage(renderImageSrc, 'PNG', margin, y, imgWidth, imgHeight);
-                y += imgHeight + 10;
-            }
-
-            if (analysisReportText.length > 0) {
-                if (y > pageHeight - 30) { doc.addPage(); y = 10; }
-                doc.setFontSize(16);
-                doc.text("AI Analysis/Report", margin, y);
-                y += 5;
-                const textContent = analysisReportText
-                    .replace(/## (.*)/g, '\n\n--- $1 ---\n')
-                    .replace(/### (.*)/g, '\n\n** $1 **\n')
-                    .replace(/(\*\*|__)/g, '')
-                    .replace(/(\*|_)/g, '')
-                    .replace(/\[\d+\]/g, '')
-                    .replace(/\n\s*\n/g, '\n\n'); 
-                const splitText = doc.splitTextToSize(textContent, pageWidth - 2 * margin);
-                doc.setFontSize(10);
-                splitText.forEach(line => {
-                    if (y > pageHeight - 10) { doc.addPage(); y = 10; }
-                    doc.text(line, margin, y);
-                    y += 5;
-                });
-            } else {
-                if (y > pageHeight - 30) { doc.addPage(); y = 10; }
-                doc.setFontSize(12);
-                doc.setTextColor(150, 150, 150);
-                doc.text("No AI analysis report available to include.", margin, y);
-                doc.setTextColor(0, 0, 0);
-                y += 10;
-            }
-            doc.save("Loveth_AI_Design_Report.pdf");
-            showMessageBox('PDF download started.', 'success');
-        });
-
-        // --- AI Functions ---
-
-        async function generateSingleImage(prompt, baseImageBase64, styleReferenceImageBase64 = null, isStrict = false) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
-            const parts = [{ text: prompt }];
-            parts.push({ inlineData: { mimeType: 'image/png', data: baseImageBase64 } });
-            if (styleReferenceImageBase64) {
-                parts.push({ inlineData: { mimeType: 'image/png', data: styleReferenceImageBase64 } });
-            }
-            const payload = { 
-                contents: [{ parts }], 
-                generationConfig: { 
-                    responseModalities: ['IMAGE'],
-                    // CRITICAL UPDATE: Relax temperature slightly from 0.0 to 0.2 to avoid NO_IMAGE blocks
-                    temperature: isStrict ? 0.2 : 0.3 
-                } 
-            };
-            const response = await fetchWithRetry(apiUrl, payload);
-            const result = await response.json();
-            
-            // Explicitly catch NO_IMAGE finish reason
-            if (result.candidates && result.candidates[0] && result.candidates[0].finishReason === 'NO_IMAGE') {
-                 console.warn("AI Generation blocked or failed (NO_IMAGE). Prompt might be unsafe or too complex.");
-                 throw new Error("AI refused to generate image. Please try a simpler prompt or avoid words related to destruction/violations.");
-            }
-
-            const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-            if (!base64Data) throw new Error(`AI image generation failed. Response: ${JSON.stringify(result)}`);
-            return base64Data;
-        }
-
-        async function getStyleDescriptionFromImage(renderedImageBase64) {
-            // UPDATED PROMPT: Aggressively filters out shape/geometry descriptions to prevent distortion
-            const systemPrompt = `You are a material specialist. Analyze the surface textures of this image.
-Your goal is to extract a "Material Palette" that can be applied to a DIFFERENT shape without changing that shape.
-
-**STRICT OUTPUT RULES:**
-1. **IGNORE GEOMETRY:** Do not describe the building's height, roof shape, windows, or doors.
-2. **FOCUS ON TEXTURES:** Describe the specific materials (e.g., "rough grey concrete," "polished mahogany," "matte black steel").
-3. **FOCUS ON LIGHT:** Describe the lighting atmosphere (e.g., "overcast soft light," "sharp afternoon sun").
-4. **FOCUS ON NATURE:** Describe the plants (e.g., "tall pine trees," "manicured lawn").
-
-**OUTPUT FORMAT:** A concise paragraph describing ONLY materials, light, and nature.`;
-            
-            const userQuery = "Extract the material and lighting palette. Ignore all architectural geometry.";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            const parts = [{ text: userQuery }, { inlineData: { mimeType: 'image/png', data: renderedImageBase64 } }];
-            const payload = { contents: [{ parts: parts }], systemInstruction: { parts: [{ text: systemPrompt }] } };
-            const response = await fetchWithRetry(apiUrl, payload);
-            const result = await response.json();
-            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!text) throw new Error("AI failed to analyze the master style.");
-            return text;
-        }
-
-        // --- Render Logic (Updated with Logo Overlay) ---
-
-        // NEW: Edit Active View Only Logic
-        editActiveViewButton.addEventListener('click', async () => {
-            // 1. Validation
-            if (!activeImageId) {
-                showMessageBox('Please click an elevation thumbnail to highlight it first.', 'error');
-                return;
-            }
-            if (!imageContent[activeImageId]?.cleanBase64Data) {
-                showMessageBox('The selected view is empty. Please upload or render it first.', 'error');
-                return;
-            }
-            const userPrompt = promptInput.value.trim();
-            if (!userPrompt) {
-                showMessageBox('Please enter an instruction in the text box (e.g., "Add a car").', 'error');
-                return;
-            }
-
-            // 2. SAVE HISTORY FOR ACTIVE VIEW ONLY
-            saveToHistory([activeImageId]);
-
-            // 3. UI Prep
-            loadingIndicator.classList.remove('hidden');
-            renderImageView.style.opacity = '0.5';
-
-            try {
-                showMessageBox(`Editing Elevation ${activeImageId.charAt(3)}...`, 'info');
-
-                // 4. Prepare Input (Use clean version to avoid logo burn-in)
-                const inputBase64 = imageContent[activeImageId].cleanBase64Data;
-                
-                // --- NEW: CROSS-REFERENCE LOGIC ---
-                // Check if user mentioned "Elevation X" or "View X" in their prompt
-                const refMatch = userPrompt.match(/(?:elevation|view|img)\s*([1-4])/i);
-                let referenceBase64 = null;
-                let editPrompt = '';
-
-                if (refMatch) {
-                    const refId = 'img' + refMatch[1];
-                    // Check if the referenced image exists
-                    if (imageContent[refId]?.cleanBase64Data) {
-                        console.log(`Cross-Reference Detected: Using ${refId} as source.`);
-                        referenceBase64 = imageContent[refId].cleanBase64Data;
-                        
-                        // 5a. Construct Cross-Reference Edit Prompt
-                        editPrompt = `**CROSS-REFERENCE EDITING MODE.**
-**INPUT:** Active View (Target for edit).
-**REFERENCE:** Elevation ${refMatch[1]} (Source of material/style).
-**USER INSTRUCTION:** "${userPrompt}"
-
-**TASK:**
-1. **IDENTIFY:** Look at the REFERENCE image to understand the specific feature mentioned (e.g., "floor tiles", "roof color").
-2. **TRANSFER:** Apply that EXACT material/style to the corresponding element in the INPUT image.
-3. **ISOLATE:** Change ONLY the requested element. Do not change the building shape or other existing materials of the INPUT.
-4. **PERSPECTIVE:** Adjust the texture to match the perspective of the INPUT view.`;
-
-                    } else {
-                        showMessageBox(`Warning: Elevation ${refMatch[1]} is empty. Proceeding without reference.`, 'info');
-                    }
-                }
-
-                // If no valid reference found/detected, use standard single edit prompt
-                if (!referenceBase64) {
-                    // 5b. Construct Specific Edit Prompt (Standard)
-                    editPrompt = `**SINGLE VIEW EDITING MODE.**
-**INPUT:** An architectural render.
-**USER INSTRUCTION:** ${userPrompt}
-
-**CONSTRAINTS:**
-1. **LOCALIZED CHANGE:** Apply the user's instruction ONLY to the relevant area.
-2. **STRUCTURE LOCK:** Do NOT change the building's geometry or shape.
-3. **CONTEXT AWARE:** Ensure lighting and shadows of added elements match the scene.`;
-                }
-
-                // 6. Generate (Use standard temperature 0.3 to allow the transfer/addition)
-                // We pass referenceBase64 as the 3rd argument if it exists
-                const newRawBase64 = await generateSingleImage(editPrompt, inputBase64, referenceBase64, false);
-
-                // 7. Apply Logo
-                let finalBase64 = newRawBase64;
-                if (logoImageObj) {
-                    finalBase64 = await applyLogoOverlay(newRawBase64);
-                }
-
-                // 8. Update State
-                const newSrc = `data:image/png;base64,${finalBase64}`;
-                imageContent[activeImageId] = {
-                    ...imageContent[activeImageId],
-                    base64Data: finalBase64,
-                    cleanBase64Data: newRawBase64,
-                    fullSrc: newSrc
-                };
-
-                // 9. Update UI
-                imageSlots[activeImageId].thumbContainer.innerHTML = `<img src="${newSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
-                renderImageView.src = newSrc;
-                renderImageSrc = newSrc; // Ensure download button gets new image
-                
-                // Re-highlight the active image to confirm selection
-                setActiveImage(activeImageId);
-
-                showMessageBox('Edit applied successfully!', 'success');
-
-            } catch (error) {
-                console.error('Edit Error:', error);
-                showMessageBox(`Edit failed: ${error.message}`, 'error');
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                renderImageView.style.opacity = '1';
-            }
-        });
-
-        generateRenderButton.addEventListener('click', async () => {
-            const userPrompt = promptInput.value.trim();
-            const masterImageKey = 'img1';
-
-            if (!imageContent[masterImageKey]?.originalBase64Data) {
-                showMessageBox('Please upload a drawing to Elevation 1 (Master).', 'error');
-                return;
-            }
-            if (!userPrompt) {
-                showMessageBox('Please describe the desired materials and style in the text box.', 'error');
-                return;
-            }
-            
-            // SAVE HISTORY FOR ALL VIEWS (Since Render All changes everyone)
-            saveToHistory(['img1', 'img2', 'img3', 'img4']);
-
-            loadingIndicator.classList.remove('hidden');
-            renderImageView.style.opacity = '0.5';
-
-            try {
-                // --- SMART SESSION LOGIC ---
-                
-                // DETECT "FIX" INTENT:
-                // If the user uses negative words, they likely want to scrap the current render and try the sketch again.
-                // UPDATED: Added more keywords based on user feedback
-                const fixKeywords = ['remove', 'no ', 'stop', 'fix', 'bad', 'wrong', 'change shape', 'too many', 'without', 'permission', 'adding', 'extra'];
-                const isFixRequest = fixKeywords.some(keyword => userPrompt.toLowerCase().includes(keyword));
-
-                // If it's a fix request, we force a Fresh Start (use original sketch), ignoring the 'clean' render.
-                const forceFreshStart = isFixRequest;
-                
-                const isIterativeMode = !forceFreshStart && (imageContent[masterImageKey].cleanBase64Data !== imageContent[masterImageKey].originalBase64Data);
-                // Use Original Sketch if forcing fresh start, otherwise use the current clean layer
-                const inputImageBase64 = forceFreshStart ? imageContent[masterImageKey].originalBase64Data : imageContent[masterImageKey].cleanBase64Data; 
-
-                let rawMasterRenderBase64 = null;
-                let styleDescription = '';
-
-                // Step 1: Render Master
-                if (isIterativeMode) {
-                    showMessageBox('Step 1/4: Refining existing Master Render...', 'info');
-                    console.log("Smart Render: Iteration Mode Active.");
-
-                    const iterationPrompt = `**IMAGE EDITING MODE: ADD/MODIFY FEATURES.**
-**INPUT:** An existing architectural render.
-**TASK:** ${userPrompt}
-**CONSTRAINT:**
-1. **PRESERVE INTEGRITY:** Keep the building structure and perspective exactly as is. Only modify the specific elements requested.
-2. **REALISM:** Ensure new elements cast correct shadows and match the lighting.`;
-
-                    rawMasterRenderBase64 = await generateSingleImage(iterationPrompt, inputImageBase64, null, false);
-
-                } else {
-                    const modeMsg = forceFreshStart ? 'Step 1/4: Re-rendering from Sketch (Fix Mode)...' : 'Step 1/4: Surface Finishing Master Elevation...';
-                    showMessageBox(modeMsg, 'info');
-                    console.log("Smart Render: Fresh Start / Fix Mode.");
-
-                    // PROMPT FOR FRESH RENDER (Monolithic Surface Mode)
-                    const freshPrompt = `**TASK: TEXTURE MAPPING ON BLIND WALLS.**
-**INPUT:** Architectural Line Drawing.
-**GOAL:** Render the defined surfaces as SOLID, UNBROKEN MASS.
-
-**SURFACE DEFINITION RULES:**
-1. **BLIND WALLS:** The blank/white areas in the drawing represent "Blind Walls" (windowless architectural surfaces).
-2. **CONTINUOUS MATERIAL:** Render these areas as a continuous, uninterrupted expanse of material (e.g., concrete, stone, plaster).
-3. **NO PENETRATION:** Do not break the surface with windows, doors, or vents unless specifically drawn with detailed framing/hatching in the input.
-4. **GEOMETRY:** The black lines define the exact edges of the material. Fill inside them.
-
-**MATERIAL INSTRUCTION:**
-- Apply: '${userPrompt}'
-- Ensure the material looks heavy and solid.
-- Environment: Realistic sky and plants around the solid structure.`;
-
-                    // STRICT MODE ENABLED (Temperature 0.2)
-                    rawMasterRenderBase64 = await generateSingleImage(freshPrompt, inputImageBase64, null, true);
-                }
-                
-                // Update Session State & Apply Logo
-                let finalMasterRenderBase64 = rawMasterRenderBase64;
-                if (logoImageObj) {
-                    finalMasterRenderBase64 = await applyLogoOverlay(rawMasterRenderBase64);
-                }
-                
-                const renderedMasterSrc = `data:image/png;base64,${finalMasterRenderBase64}`;
-                imageContent[masterImageKey] = { 
-                    ...imageContent[masterImageKey], 
-                    base64Data: finalMasterRenderBase64, 
-                    cleanBase64Data: rawMasterRenderBase64, 
-                    fullSrc: renderedMasterSrc 
-                };
-                
-                imageSlots[masterImageKey].thumbContainer.innerHTML = `<img src="${renderedMasterSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
-                renderImageView.src = renderedMasterSrc;
-                renderImageSrc = renderedMasterSrc;
-                setActiveImage(masterImageKey);
-
-                // Step 2: Analyze Style 
-                showMessageBox('Step 2/4: Analyzing surface materials...', 'info');
-                styleDescription = await getStyleDescriptionFromImage(rawMasterRenderBase64);
-
-                // Step 3: Render Others
-                const imagesToRender = ['img2', 'img3', 'img4'];
-                let imagesRenderedCount = 0;
-
-                for (let i = 0; i < imagesToRender.length; i++) {
-                    const key = imagesToRender[i];
-                    if (imageContent[key]?.originalBase64Data) {
-                        imagesRenderedCount++;
-                        showMessageBox(`Step 3/4: Updating Elevation ${key.charAt(3)}...`, 'info');
-
-                        // Also force child views to reset if we are in fix mode
-                        const isChildIterative = !forceFreshStart && (imageContent[key].cleanBase64Data !== imageContent[key].originalBase64Data);
-                        const childInputBase64 = forceFreshStart ? imageContent[key].originalBase64Data : imageContent[key].cleanBase64Data;
-
-                        let styleTransferPrompt = '';
-
-                        if (isChildIterative) {
-                             // Refinement Prompt for Child Views
-                             styleTransferPrompt = `**UPDATE EXISTING RENDER.**
-**INPUT:** An existing render of a side elevation.
-**TASK:** Update the lighting/atmosphere/landscaping to match the description below.
-
-**CONSTRAINT:** 1. **ABSOLUTE GEOMETRY LOCK:** Do NOT change the building shape.
-2. **ADDITIONS:** If the user asked for features (like "add a car") in the prompt ('${userPrompt}'), add them now.
-
-**MASTER STYLE DNA:** "${styleDescription}"`;
-                             
-                             rawChildRenderBase64 = await generateSingleImage(styleTransferPrompt, childInputBase64, null, false); 
-                        } else {
-                            // Fresh Render Prompt for Child Views (Monolithic)
-                            styleTransferPrompt = `**TASK: SOLID SURFACE TEXTURING.**
-**INPUT:** Line Drawing (Fixed Geometry).
-**STYLE:** Based on description below.
-
-**RULES:**
-1. **UNBROKEN SURFACES:** Treat blank areas as solid, heavy walls.
-2. **NO OPENINGS:** Do not render windows or doors on blank surfaces.
-3. **CONSISTENCY:** Apply the exact materials described below.
-
-**STYLE DESCRIPTION:** "${styleDescription}"`;
-
-                            // STRICT MODE ENABLED (Temperature 0.2)
-                            rawChildRenderBase64 = await generateSingleImage(styleTransferPrompt, childInputBase64, null, true); 
-                        }
-                        
-                        // Apply Logo
-                        let finalChildRenderBase64 = rawChildRenderBase64;
-                        if (logoImageObj) {
-                            finalChildRenderBase64 = await applyLogoOverlay(rawChildRenderBase64);
-                        }
-
-                        const renderedSrc = `data:image/png;base64,${finalChildRenderBase64}`;
-                        
-                        imageContent[key] = { 
-                            ...imageContent[key], 
-                            base64Data: finalChildRenderBase64, 
-                            cleanBase64Data: rawChildRenderBase64, 
-                            fullSrc: renderedSrc 
-                        };
-                        
-                        imageSlots[key].thumbContainer.innerHTML = `<img src="${renderedSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
-                    }
-                }
-
-                if (imagesRenderedCount > 0) {
-                    showMessageBox('All views updated and synchronized!', 'success');
-                } else {
-                    showMessageBox('Master view updated. Upload other elevations to sync them.', 'success');
-                }
-            } catch (error) {
-                console.error('Full Render Error:', error);
-                showMessageBox(`Render failed: ${error.message || 'An unknown error occurred.'}`, 'error');
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                renderImageView.style.opacity = '1';
-            }
-        });
-
-        async function runTextAnalysis(systemPrompt, userQuery, useActiveImage = true, useGoogleSearch = false) {
-            if (useActiveImage && !Object.values(imageContent).some(img => img)) throw new Error("Please upload an image first.");
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            const parts = [{ text: userQuery }];
-            if (useActiveImage && activeImageId) {
-                const activeImageBase64 = imageContent[activeImageId].base64Data;
-                parts.push({ inlineData: { mimeType: 'image/png', data: activeImageBase64 } });
-            } else if (useActiveImage && Object.values(imageContent).some(img => img)) {
-                const firstKey = Object.keys(imageContent).find(k => imageContent[k] !== null);
-                if (firstKey) {
-                    const firstImageBase64 = imageContent[firstKey].base64Data;
-                    parts.push({ inlineData: { mimeType: 'image/png', data: firstImageBase64 } });
-                }
-            }
-            const payload = { contents: [{ parts: parts }], systemInstruction: { parts: [{ text: systemPrompt }] } };
-            if (useGoogleSearch) payload.tools = [{ "google_search": {} }];
-            const response = await fetchWithRetry(apiUrl, payload);
-            const result = await response.json();
-            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!text) throw new Error("AI analysis returned no content.");
-            return text;
-        }
-
-        async function handleAnalysisButton(buttonId, systemPrompt, userQueryGenerator, useSearch = false, useActiveImage = true) {
-            try {
-                if (useActiveImage && !Object.values(imageContent).some(img => img)) { showMessageBox('Please upload an image first.', 'error'); return; }
-                loadingIndicator.classList.remove('hidden');
-                renderImageView.style.opacity = '0.5';
-                structuralOutputContainer.innerHTML = `<div class="p-4 text-center text-gray-500"><i class="fas fa-sync-alt fa-spin mr-2"></i> Generating Report...</div>`;
-                const userQuery = userQueryGenerator();
-                const resultText = await runTextAnalysis(systemPrompt, userQuery, useActiveImage, useSearch);
-                displayMarkdownOutput(resultText);
-                showMessageBox(`${buttonId} complete.`, 'success');
-            } catch (error) {
-                console.error(`${buttonId} Error:`, error);
-                structuralOutputContainer.innerHTML = `<div class="p-4 text-red-600 font-semibold">Error: ${error.message}.</div>`;
-                showMessageBox(`Operation failed: ${error.message || 'An unknown error occurred.'}`, 'error');
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                renderImageView.style.opacity = '1';
-            }
-        }
-
-        structuralAnalysisButton.addEventListener('click', () => {
-            handleAnalysisButton('Image Analysis', `You are a senior image analyst and content expert. Analyze the attached image. Focus on identifying the main subject, composition style, lighting, and emotional tone. Provide a concise, general analysis report in Markdown format. Do not use external search.`, () => `Perform a general image analysis on the attached subject.`, false);
-        });
-
-        designBriefButton.addEventListener('click', () => {
-             handleAnalysisButton('Detailed Report Creation', `You are an expert report consultant. Create a professional, persuasive detailed report for the subject shown in the attached image. Infer the subject's context, potential purpose, and target audience. Present the report with clear Markdown headings. Do not use external search.`, () => `Create a detailed report for the attached image subject.`, false);
-        });
-        
-        generateColorPaletteButton.addEventListener('click', () => {
-             handleAnalysisButton('Color Palette Generation', `You are a color theory and design expert. Based on the attached image, generate a harmonious color palette that complements the subject's tone and mood. Provide 5 distinct colors (including primary, accent, and secondary) with their hex codes. Present the output as a Markdown table. Do not use external search.`, () => `Suggest a color palette for this image, including hex codes.`, false);
-        });
-        
-        generateDesignIdeasButton.addEventListener('click', () => {
-             handleAnalysisButton('Creative Suggestion', `You are an innovative creative director. Provide three distinct, actionable suggestions to enhance or alter the image shown in the attached file, focusing on creative composition, style changes, or narrative improvement. Present the suggestions clearly using a Markdown list. Do not use external search.`, () => `Generate three creative enhancement ideas for the attached image.`, false);
-        });
-
-        socialPostButton.addEventListener('click', () => {
-             handleAnalysisButton('Social Media Draft', `You are a marketing specialist. Draft a captivating social media post (e.g., for Instagram or LinkedIn) announcing the attached image/subject. Include a compelling headline, a brief description of the subject's unique features, and 5 relevant hashtags. Present the draft as a single block of text suitable for posting, using bold for emphasis where appropriate. Do not use external search.`, () => `Draft a social media post for the attached image.`, false);
-        });
-        
-        critiqueButton.addEventListener('click', () => {
-             handleAnalysisButton('Image Critique', `You are an expert architectural and landscape design critic. Provide a concise, balanced critique of the attached architectural image. 1. Highlight two strengths and two weaknesses of the current design. 2. Based on the building's style, recommend two specific and high-end external wall finishes that would enhance its luxury, explaining why. 3. Suggest two distinct landscaping concepts that would complement the architecture, detailing the types of plants and features. Present everything in a professional, well-structured Markdown format. Do not use external search.`, () => `Provide a detailed architectural critique for the attached image, including recommendations for wall finishes and landscaping.`, false);
-        });
-        
-        sustainabilityReportButton.addEventListener('click', () => {
-             handleAnalysisButton('Context Report', `You are an expert researcher. Based on the attached image, provide a brief, high-level report detailing 3 potential related facts or context points about the subject matter (e.g., history, similar items, usage). Use Google Search to ground your findings in real-world context. Present in a clear Markdown list.`, () => `Provide a high-level context report and suggested facts for the attached image subject.`, true);
-        });
-        
-        costEstimationButton.addEventListener('click', () => {
-             handleAnalysisButton('Project Cost Estimation', `You are a fictional project manager. If the subject of the attached image were a commercial project, provide a very rough, high-level cost estimate for its creation or implementation (if applicable). Use Google Search for rough, general cost data and currency conversion reference for Kenyan Shillings (Ksh). Present the output in a clear Markdown block.`, () => `Provide a rough project cost estimate in Kenyan Shillings (Ksh) if the attached image subject were a major project.`, true);
-        });
-
-        function copyReportToClipboard() {
-            if (analysisReportText.length === 0) {
-                showMessageBox('No report generated yet to copy.', 'error');
-                return;
-            }
-            const textArea = document.createElement("textarea");
-            textArea.value = analysisReportText;
-            textArea.style.position = "fixed"; 
-            textArea.style.left = "-9999px"; 
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            let successful = false;
-            try {
-                successful = document.execCommand('copy');
-                if (successful) {
-                    showMessageBox('Report successfully copied to clipboard!', 'success');
-                } else {
-                    showMessageBox('Copy failed. Please copy the text manually from the output box.', 'error');
-                }
-            } catch (err) {
-                console.error('Copy failed using execCommand:', err);
-                showMessageBox('Copy failed. Please copy the text manually from the output box.', 'error');
-            } finally {
-                document.body.removeChild(textArea);
-            }
-        }
-
-        readAloudButton.addEventListener('click', async () => {
-            const textToRead = analysisReportText.trim();
-            if (textToRead.length === 0) { showMessageBox('Please run an analysis first before clicking "Read Aloud".', 'error'); return; }
-            loadingIndicator.classList.remove('hidden');
-            renderImageView.style.opacity = '0.5';
-            try {
-                showMessageBox('Generating audio...', 'info');
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-                const payload = {
-                    contents: [{ parts: [{ text: `Say this professional analysis report with an informative tone: ${textToRead}` }] }],
-                    generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Charon" } } } },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
-                const response = await fetchWithRetry(apiUrl, payload);
-                const result = await response.json();
-                const part = result?.candidates?.[0]?.content?.parts?.[0];
-                const audioData = part?.inlineData?.data;
-                const mimeType = part?.inlineData?.mimeType;
-                if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                    if (!sampleRateMatch) throw new Error("Could not determine sample rate from API response.");
-                    const sampleRate = parseInt(sampleRateMatch[1], 10);
-                    const pcmData = base64ToArrayBuffer(audioData);
-                    const pcm16 = new Int16Array(pcmData);
-                    const wavBlob = pcmToWav(pcm16, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    audioPlayer.src = audioUrl;
-                    audioPlayer.play();
-                    showMessageBox('Audio playback started.', 'success');
-                } else {
-                    throw new Error("Invalid audio response from API.");
-                }
-            } catch (error) {
-                console.error("TTS Error:", error);
-                showMessageBox(`Audio generation failed: ${error.message}`, 'error');
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                renderImageView.style.opacity = '1';
-            }
+            imageSlots[key].uploadInput.addEventListener('change', () => handleImageUpload(key));
         });
     </script>
 </body>
