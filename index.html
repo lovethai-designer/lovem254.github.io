@@ -26,7 +26,6 @@
         }
 
         .prose {
-            /* Basic styling for markdown-rendered output */
             max-width: 100%;
         }
         
@@ -97,7 +96,12 @@
                 <i class="fas fa-palette text-blue-500 mr-3"></i>
                 Loveth AI Designer
             </h1>
-            <div class="flex space-x-2 mt-4 md:mt-0">
+            <div class="flex flex-wrap gap-2 mt-4 md:mt-0 justify-end">
+                <input type="file" id="logoUploadInput" class="hidden" accept="image/png, image/jpeg">
+                <button id="uploadLogoButton" class="px-4 py-2 bg-pink-500 text-white font-semibold rounded-lg shadow-md hover:bg-pink-600 transition-colors">
+                    <i class="fas fa-certificate mr-2"></i>
+                    Upload Logo
+                </button>
                 <button id="downloadImageButton" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-colors">
                     <i class="fas fa-image mr-2"></i>
                     Download Image
@@ -106,14 +110,17 @@
                     <i class="fas fa-file-pdf mr-2"></i>
                     Download PDF
                 </button>
+                <button id="undoButton" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 transition-colors">
+                    <i class="fas fa-undo mr-2"></i>
+                    Undo
+                </button>
                 <button id="clearRenderButton" class="px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition-colors">
                     <i class="fas fa-broom mr-2"></i>
-                    Clear Render
+                    Clear
                 </button>
             </div>
         </div>
 
-        <!-- Render View and User Input -->
         <div class="relative w-full aspect-video border-4 border-gray-300 rounded-lg overflow-hidden shadow-inner bg-gray-200 flex items-center justify-center">
             <img id="renderImageView" class="w-full h-full object-contain p-2" src="https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here" alt="AI Generated Render">
             <div id="loadingIndicator" class="absolute inset-0 bg-gray-900 bg-opacity-70 flex flex-col items-center justify-center text-white text-lg font-semibold hidden">
@@ -123,75 +130,71 @@
             <div id="messageBox" class="absolute top-4 w-auto max-w-sm p-4 rounded-lg text-white font-semibold shadow-xl transition-opacity duration-300 opacity-0 hidden"></div>
         </div>
 
-        <!-- Elevation Management -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-200 p-4 rounded-lg">
-            <!-- Front Elevation -->
             <div class="text-center">
-                <p class="font-semibold text-gray-700">Front Elevation</p>
-                <div id="front-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveElevation('front')">
-                    <span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>
+                <p class="font-semibold text-gray-700">Elevation 1 (Master)</p>
+                <div id="img1-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveImage('img1')">
+                    <span class="text-gray-400 text-sm pointer-events-none">Upload Elevation</span>
                 </div>
-                <input type="file" id="front-upload-input" class="hidden" accept="image/png, image/jpeg">
-                <button id="upload-front-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
+                <input type="file" id="img1-upload-input" class="hidden" accept="image/png, image/jpeg">
+                <button id="upload-img1-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
             </div>
-            <!-- Rear Elevation -->
             <div class="text-center">
-                <p class="font-semibold text-gray-700">Rear Elevation</p>
-                <div id="rear-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveElevation('rear')">
-                     <span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>
+                <p class="font-semibold text-gray-700">Elevation 2</p>
+                <div id="img2-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveImage('img2')">
+                     <span class="text-gray-400 text-sm pointer-events-none">Upload Elevation</span>
                 </div>
-                <input type="file" id="rear-upload-input" class="hidden" accept="image/png, image/jpeg">
-                <button id="upload-rear-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
+                <input type="file" id="img2-upload-input" class="hidden" accept="image/png, image/jpeg">
+                <button id="upload-img2-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
             </div>
-            <!-- Left Elevation -->
             <div class="text-center">
-                <p class="font-semibold text-gray-700">Left Elevation</p>
-                <div id="left-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveElevation('left')">
-                     <span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>
+                <p class="font-semibold text-gray-700">Elevation 3</p>
+                <div id="img3-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveImage('img3')">
+                     <span class="text-gray-400 text-sm pointer-events-none">Upload Elevation</span>
                 </div>
-                <input type="file" id="left-upload-input" class="hidden" accept="image/png, image/jpeg">
-                <button id="upload-left-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
+                <input type="file" id="img3-upload-input" class="hidden" accept="image/png, image/jpeg">
+                <button id="upload-img3-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
             </div>
-            <!-- Right Elevation -->
             <div class="text-center">
-                <p class="font-semibold text-gray-700">Right Elevation</p>
-                <div id="right-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveElevation('right')">
-                     <span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>
+                <p class="font-semibold text-gray-700">Elevation 4</p>
+                <div id="img4-thumb-container" class="mt-2 w-full h-24 bg-white rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer" onclick="setActiveImage('img4')">
+                     <span class="text-gray-400 text-sm pointer-events-none">Upload Elevation</span>
                 </div>
-                <input type="file" id="right-upload-input" class="hidden" accept="image/png, image/jpeg">
-                <button id="upload-right-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
+                <input type="file" id="img4-upload-input" class="hidden" accept="image/png, image/jpeg">
+                <button id="upload-img4-button" class="mt-2 w-full px-2 py-1 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 transition-colors">Upload</button>
             </div>
         </div>
         
-        <!-- Workflow Guidance -->
         <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg text-blue-800">
             <p class="font-bold">Architectural Workflow:</p>
-            <p class="text-sm mt-1">1. Upload all 4 elevations above.</p>
-            <p class="text-sm">2. Enter your desired environment/materials prompt below.</p>
-            <p class="text-sm">3. Click **"1. Render Front & Apply Style to All"** to generate the master render and apply its style consistently to all other views.</p>
+            <p class="text-sm mt-1">1. Click <b class="text-pink-600">Upload Logo</b> (top right) to add your company branding.</p>
+            <p class="text-sm mt-1">2. Upload your primary drawing to **Elevation 1 (Master)**.</p>
+            <p class="text-sm">3. Upload other viewpoints to Elevations 2, 3, and 4.</p>
+            <p class="text-sm">4. Describe the materials and lighting style, then click **"Render All Elevations"**.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Left Side: Prompt Input and Image Upload -->
             <div class="space-y-4">
-                <textarea id="promptInput" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none" placeholder="Describe the ideal surroundings and materials for your building (e.g., 'a lush tropical garden with waterfalls, white stucco walls and dark mahogany window frames')."></textarea>
-                <div class="flex items-center justify-between space-x-2">
+                <textarea id="promptInput" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none" placeholder="Describe the desired materials, lighting, and environment (e.g., 'Modernist style with brushed concrete, warm oak cladding, and soft morning light')."></textarea>
+                <div class="flex flex-col space-y-2">
                     <button id="generateRenderButton" class="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-cubes mr-2"></i>
-                        1. Render Front & Apply Style to All
+                        <i class="fas fa-magic mr-2"></i>
+                        Render All Elevations
+                    </button>
+                    <button id="editActiveViewButton" class="w-full px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-edit mr-2"></i>
+                        Edit Active View Only
                     </button>
                 </div>
             </div>
 
-            <!-- Right Side: Structural Analysis and Output -->
             <div class="space-y-4">
                 <div class="flex items-center space-x-2">
                     <button id="structuralAnalysisButton" class="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors">
                         <i class="fas fa-search mr-2"></i>
-                        Perform Structural Analysis
+                        Perform Image Analysis
                     </button>
                 </div>
-                <!-- Read Aloud button remains, Copy button is now placed dynamically inside the output box -->
                 <div class="flex items-center space-x-2 mt-2">
                     <button id="readAloudButton" class="w-full px-4 py-3 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 transition-colors">
                          <i class="fas fa-volume-up mr-2"></i> Read Aloud
@@ -204,13 +207,13 @@
                     </button>
                     <button id="generateDesignIdeasButton" class="w-full px-4 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors">
                         <i class="fas fa-lightbulb mr-2"></i>
-                        ✨ Get Design Suggestions
+                        ✨ Get Creative Suggestions
                     </button>
                 </div>
                 <div class="flex items-center space-x-2 mt-2">
                     <button id="designBriefButton" class="w-full px-4 py-3 bg-sky-600 text-white font-semibold rounded-lg shadow-md hover:bg-sky-700 transition-colors">
                         <i class="fas fa-file-alt mr-2"></i>
-                        Create Design Brief
+                        Create Detailed Report
                     </button>
                     <button id="socialPostButton" class="w-full px-4 py-3 bg-rose-600 text-white font-semibold rounded-lg shadow-md hover:bg-rose-700 transition-colors">
                         <i class="fas fa-share-alt mr-2"></i>
@@ -218,22 +221,21 @@
                     </button>
                     <button id="critiqueButton" class="w-full px-4 py-3 bg-orange-500 text-white font-semibold rounded-lg shadow-md hover:bg-orange-600 transition-colors">
                         <i class="fas fa-comment-alt mr-2"></i>
-                        ✨ Critique Design
+                        ✨ Critique Image
                     </button>
                 </div>
                 <div class="flex items-center space-x-2 mt-2">
                     <button id="sustainabilityReportButton" class="w-full px-4 py-3 bg-cyan-600 text-white font-semibold rounded-lg shadow-md hover:bg-cyan-700 transition-colors">
                         <i class="fas fa-leaf mr-2"></i>
-                        ✨ Get Sustainability Report
+                        ✨ Get Context Report
                     </button>
                     <button id="costEstimationButton" class="w-full px-4 py-3 bg-lime-600 text-white font-semibold rounded-lg shadow-md hover:bg-lime-700 transition-colors">
                         <span class="font-bold mr-2">Ksh</span>
                         ✨ Estimate Project Cost
                     </button>
                 </div>
-                <!-- The Copy button will be absolutely positioned inside this container -->
                 <div id="structuralOutputContainer" class="p-4 bg-white rounded-lg shadow-inner border border-gray-300 min-h-[100px] overflow-auto relative">
-                    <p class="text-gray-500">Analysis results will appear here after you upload an image and click 'Perform Structural Analysis'.</p>
+                    <p class="text-gray-500">Analysis results will appear here after you upload an image and click an analysis button.</p>
                 </div>
             </div>
         </div>
@@ -241,7 +243,6 @@
     <audio id="audioPlayer" class="hidden"></audio>
 
     <script>
-        // --- DOM Elements ---
         const renderImageView = document.getElementById('renderImageView');
         const promptInput = document.getElementById('promptInput');
         const generateRenderButton = document.getElementById('generateRenderButton');
@@ -260,51 +261,100 @@
         const downloadPdfButton = document.getElementById('downloadPdfButton');
         const downloadImageButton = document.getElementById('downloadImageButton');
         const clearRenderButton = document.getElementById('clearRenderButton');
+        const undoButton = document.getElementById('undoButton');
+        const editActiveViewButton = document.getElementById('editActiveViewButton');
         const audioPlayer = document.getElementById('audioPlayer');
 
-        const elevationElements = {
-            front: {
-                thumbContainer: document.getElementById('front-thumb-container'),
-                uploadInput: document.getElementById('front-upload-input'),
-                uploadButton: document.getElementById('upload-front-button'),
+        const logoUploadInput = document.getElementById('logoUploadInput');
+        const uploadLogoButton = document.getElementById('uploadLogoButton');
+
+        const imageSlots = {
+            img1: {
+                thumbContainer: document.getElementById('img1-thumb-container'),
+                uploadInput: document.getElementById('img1-upload-input'),
+                uploadButton: document.getElementById('upload-img1-button'),
             },
-            rear: {
-                thumbContainer: document.getElementById('rear-thumb-container'),
-                uploadInput: document.getElementById('rear-upload-input'),
-                uploadButton: document.getElementById('upload-rear-button'),
+            img2: {
+                thumbContainer: document.getElementById('img2-thumb-container'),
+                uploadInput: document.getElementById('img2-upload-input'),
+                uploadButton: document.getElementById('upload-img2-button'),
             },
-            left: {
-                thumbContainer: document.getElementById('left-thumb-container'),
-                uploadInput: document.getElementById('left-upload-input'),
-                uploadButton: document.getElementById('upload-left-button'),
+            img3: {
+                thumbContainer: document.getElementById('img3-thumb-container'),
+                uploadInput: document.getElementById('img3-upload-input'),
+                uploadButton: document.getElementById('upload-img3-button'),
             },
-            right: {
-                thumbContainer: document.getElementById('right-thumb-container'),
-                uploadInput: document.getElementById('right-upload-input'),
-                uploadButton: document.getElementById('upload-right-button'),
+            img4: {
+                thumbContainer: document.getElementById('img4-thumb-container'),
+                uploadInput: document.getElementById('img4-upload-input'),
+                uploadButton: document.getElementById('upload-img4-button'),
             },
         };
 
-        // --- State Variables ---
-        let elevationImages = {
-            front: null, // will store { base64Data, fullSrc, originalBase64Data }
-            rear: null,
-            left: null,
-            right: null,
+        let imageContent = {
+            img1: null,
+            img2: null,
+            img3: null,
+            img4: null,
         };
-        let activeImageId = null; // 'front', 'rear', 'left', or 'right'
+        let activeImageId = null; 
         let analysisReportText = '';
         let renderImageSrc = '';
+        let logoImageObj = null; 
 
-        const apiKey = ""; // The API key will be provided by the canvas environment
+        let sessionMasterRender = null;
+        let sessionPrompt = '';
+        let sessionMasterSketchHash = '';
+        
+        let elevationHistory = {
+            img1: [],
+            img2: [],
+            img3: [],
+            img4: []
+        };
 
-        // --- Utility Functions ---
+        const apiKey = ""; 
 
-        /**
-         * Displays a temporary message box notification.
-         * @param {string} message The message to display.
-         * @param {string} type 'success', 'error', or 'info'.
-         */
+        function saveToHistory(keys) {
+            keys.forEach(key => {
+                if (imageContent[key]) {
+                    elevationHistory[key].push(JSON.parse(JSON.stringify(imageContent[key])));
+                    if (elevationHistory[key].length > 10) elevationHistory[key].shift();
+                }
+            });
+        }
+
+        function undoHighlightedElevation() {
+            if (!activeImageId) {
+                showMessageBox('Please select (highlight) an elevation to undo.', 'error');
+                return;
+            }
+
+            const stack = elevationHistory[activeImageId];
+            if (stack.length === 0) {
+                showMessageBox(`No history found for Elevation ${activeImageId.charAt(3)}.`, 'info');
+                return;
+            }
+
+            const prevData = stack.pop();
+            imageContent[activeImageId] = prevData;
+
+            const container = imageSlots[activeImageId].thumbContainer;
+            container.innerHTML = `<img src="${prevData.fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
+            container.classList.remove('border-dashed');
+
+            renderImageView.src = prevData.fullSrc;
+            renderImageSrc = prevData.fullSrc;
+
+            if (activeImageId === 'img1') {
+                sessionMasterRender = prevData.cleanBase64Data;
+            }
+
+            showMessageBox(`Undid changes to Elevation ${activeImageId.charAt(3)}.`, 'success');
+        }
+
+        undoButton.addEventListener('click', undoHighlightedElevation);
+
         function showMessageBox(message, type = 'info') {
             messageBox.textContent = message;
             messageBox.className = `absolute top-4 w-auto max-w-sm p-4 rounded-lg text-white font-semibold shadow-xl transition-opacity duration-300 opacity-100 block ${
@@ -318,12 +368,6 @@
             }, 3300);
         }
         
-        /**
-         * Handles API calls with exponential backoff for retries.
-         * @param {string} url API endpoint URL.
-         * @param {object} payload Request body payload.
-         * @returns {Promise<Response>} The successful fetch response.
-         */
         async function fetchWithRetry(url, payload) {
             const maxRetries = 3;
             let retries = 0;
@@ -333,22 +377,19 @@
                 try {
                     response = await fetch(url, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
                     if (response.ok) {
                         return response;
                     } else {
-                        // Throw error to trigger catch block and retry
                         throw new Error(`API returned status code: ${response.status}`);
                     }
                 } catch (error) {
                     retries++;
                     if (retries < maxRetries) {
-                        const delay = Math.pow(2, retries) * 1000; // 2s, 4s, 8s delay
+                        const delay = Math.pow(2, retries) * 1000;
                         await new Promise(res => setTimeout(res, delay));
                     } else {
                         console.error("Failed to fetch data after multiple retries.", error);
@@ -358,642 +399,155 @@
             } while (retries < maxRetries);
         }
 
-        /** Converts Base64 audio data to ArrayBuffer. */
+        uploadLogoButton.addEventListener('click', () => logoUploadInput.click());
+
+        logoUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    logoImageObj = img;
+                    showMessageBox('Logo uploaded! It will be applied to all future renders.', 'success');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function applyLogoOverlay(base64Image) {
+            if (!logoImageObj) return base64Image;
+
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const mainImg = new Image();
+                
+                mainImg.onload = () => {
+                    canvas.width = mainImg.width;
+                    canvas.height = mainImg.height;
+                    ctx.drawImage(mainImg, 0, 0);
+                    
+                    const targetLogoWidth = canvas.width * 0.15;
+                    const scaleFactor = targetLogoWidth / logoImageObj.width;
+                    const targetLogoHeight = logoImageObj.height * scaleFactor;
+                    
+                    const padding = canvas.width * 0.02;
+                    const x = canvas.width - targetLogoWidth - padding;
+                    const y = padding;
+
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = logoImageObj.width;
+                    tempCanvas.height = logoImageObj.height;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(logoImageObj, 0, 0);
+                    
+                    const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                    const data = imgData.data;
+                    
+                    for(let i=0; i < data.length; i+=4) {
+                        const r = data[i], g = data[i+1], b = data[i+2];
+                        if(r > 230 && g > 230 && b > 230) data[i+3] = 0;
+                    }
+                    tempCtx.putImageData(imgData, 0, 0);
+                    ctx.drawImage(tempCanvas, x, y, targetLogoWidth, targetLogoHeight);
+                    resolve(canvas.toDataURL('image/png').split(',')[1]);
+                };
+                mainImg.src = `data:image/png;base64,${base64Image}`;
+            });
+        }
+
         function base64ToArrayBuffer(base64) {
             const binaryString = window.atob(base64);
             const len = binaryString.length;
             const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
+            for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
             return bytes.buffer;
         }
 
-        /** Converts PCM 16-bit audio to WAV Blob. */
         function pcmToWav(pcm16, sampleRate) {
-            const numChannels = 1;
-            const bytesPerSample = 2;
+            const numChannels = 1, bytesPerSample = 2;
             const byteRate = sampleRate * numChannels * bytesPerSample;
             const blockAlign = numChannels * bytesPerSample;
-
             const buffer = new ArrayBuffer(44 + pcm16.length * 2);
             const view = new DataView(buffer);
             let offset = 0;
-
-            function writeString(str) {
-                for (let i = 0; i < str.length; i++) {
-                    view.setUint8(offset++, str.charCodeAt(i));
-                }
-            }
-
-            writeString('RIFF'); // RIFF identifier
-            view.setUint32(offset, 36 + pcm16.length * 2, true); // file length
-            offset += 4;
-            writeString('WAVE'); // RIFF type
-            writeString('fmt '); // format chunk identifier
-            view.setUint32(offset, 16, true); // format chunk length
-            offset += 4;
-            view.setUint16(offset, 1, true); // audio format (1 = PCM)
-            offset += 2;
-            view.setUint16(offset, numChannels, true); // number of channels
-            offset += 2;
-            view.setUint32(offset, sampleRate, true); // sample rate
-            offset += 4;
-            view.setUint32(offset, byteRate, true); // byte rate
-            offset += 4;
-            view.setUint16(offset, blockAlign, true); // block align
-            offset += 2;
-            view.setUint16(offset, 16, true); // bits per sample
-            offset += 2;
-            writeString('data'); // data chunk identifier
-            view.setUint32(offset, pcm16.length * 2, true); // data chunk length
-            offset += 4;
-
-            for (let i = 0; i < pcm16.length; i++) {
-                view.setInt16(offset, pcm16[i], true);
-                offset += 2;
-            }
-
+            function writeString(str) { for (let i = 0; i < str.length; i++) view.setUint8(offset++, str.charCodeAt(i)); }
+            writeString('RIFF');
+            view.setUint32(offset, 36 + pcm16.length * 2, true); offset += 4;
+            writeString('WAVE'); writeString('fmt ');
+            view.setUint32(offset, 16, true); offset += 4;
+            view.setUint16(offset, 1, true); offset += 2;
+            view.setUint16(offset, numChannels, true); offset += 2;
+            view.setUint32(offset, sampleRate, true); offset += 4;
+            view.setUint32(offset, byteRate, true); offset += 4;
+            view.setUint16(offset, blockAlign, true); offset += 2;
+            view.setUint16(offset, 16, true); offset += 2;
+            writeString('data');
+            view.setUint32(offset, pcm16.length * 2, true); offset += 4;
+            for (let i = 0; i < pcm16.length; i++) { view.setInt16(offset, pcm16[i], true); offset += 2; }
             return new Blob([view], { type: 'audio/wav' });
         }
 
-        /** Renders Markdown content to the output container. */
         function displayMarkdownOutput(markdownText) {
-            analysisReportText = markdownText; // Store for PDF and Copy
-            
-            // HTML for the new absolute copy button
-            const copyButtonHTML = `
-                <button id="dynamicCopyButton" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg shadow-md hover:bg-gray-300 transition-colors z-10">
-                    <i class="fas fa-copy mr-1"></i> Copy
-                </button>
-            `;
-
-            // Adding extra padding-top (pt-8) to the prose div to make space for the absolute copy button
-            // The main container has p-4, so pt-8 pushes content down further.
+            analysisReportText = markdownText;
+            const copyButtonHTML = `<button id="dynamicCopyButton" class="absolute top-2 right-2 px-3 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg shadow-md hover:bg-gray-300 transition-colors z-10"><i class="fas fa-copy mr-1"></i> Copy</button>`;
             structuralOutputContainer.innerHTML = copyButtonHTML + `<div class="prose pt-8">${marked.parse(markdownText)}</div>`;
-            
-            // Attach event listener to the newly created button
             const dynamicCopyButton = document.getElementById('dynamicCopyButton');
-            if (dynamicCopyButton) {
-                dynamicCopyButton.addEventListener('click', copyReportToClipboard);
-            }
+            if (dynamicCopyButton) dynamicCopyButton.addEventListener('click', () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = analysisReportText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showMessageBox('Copied to clipboard!', 'success');
+            });
+            if (window.MathJax) window.MathJax.typesetPromise([structuralOutputContainer]);
+        }
 
-            // Re-render MathJax after updating the content
-            if (window.MathJax) {
-                window.MathJax.typesetPromise([structuralOutputContainer]);
+        function setActiveImage(imageKey) {
+            activeImageId = imageKey;
+            Object.keys(imageSlots).forEach(key => {
+                imageSlots[key].thumbContainer.classList.remove('active');
+            });
+            imageSlots[imageKey].thumbContainer.classList.add('active');
+            if (imageContent[imageKey]) {
+                renderImageView.src = imageContent[imageKey].fullSrc;
+                renderImageSrc = imageContent[imageKey].fullSrc;
             }
         }
 
-        // --- Image and UI Handlers ---
-
-        function handleImageUpload(elevationKey) {
-            const file = elevationElements[elevationKey].uploadInput.files[0];
+        function handleImageUpload(imageKey) {
+            const file = imageSlots[imageKey].uploadInput.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = (e) => {
                 const fullSrc = e.target.result;
                 const base64Data = fullSrc.split(',')[1];
-                
-                // Store original data separately for re-rendering/analysis
-                // Reset base64Data and fullSrc to the original when a new file is uploaded
-                elevationImages[elevationKey] = { base64Data: base64Data, fullSrc: fullSrc, originalBase64Data: base64Data };
+                imageContent[imageKey] = { 
+                    base64Data: base64Data, 
+                    cleanBase64Data: base64Data,
+                    fullSrc: fullSrc, 
+                    originalBase64Data: base64Data 
+                };
 
-                const thumbContainer = elevationElements[elevationKey].thumbContainer;
+                const thumbContainer = imageSlots[imageKey].thumbContainer;
                 thumbContainer.innerHTML = `<img src="${fullSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
-                
-                setActiveElevation(elevationKey);
-                showMessageBox(`${elevationKey.charAt(0).toUpperCase() + elevationKey.slice(1)} image uploaded.`, 'success');
+                setActiveImage(imageKey);
+                showMessageBox(`Elevation ${imageKey.charAt(3)} uploaded.`, 'success');
             };
             reader.readAsDataURL(file);
         }
 
-        Object.keys(elevationElements).forEach(key => {
-            elevationElements[key].uploadButton.addEventListener('click', () => {
-                elevationElements[key].uploadInput.click();
+        Object.keys(imageSlots).forEach(key => {
+            imageSlots[key].uploadButton.addEventListener('click', () => {
+                imageSlots[key].uploadInput.click();
             });
-            elevationElements[key].uploadInput.addEventListener('change', () => {
-                handleImageUpload(key);
-            });
+            imageSlots[key].uploadInput.addEventListener('change', () => handleImageUpload(key));
         });
-
-        function setActiveElevation(elevationKey) {
-            if (!elevationImages[elevationKey]) {
-                // If there's no image, do not set as active, but clear the display if this was the last active one
-                if (activeImageId === elevationKey) {
-                    renderImageView.src = "https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here";
-                    renderImageSrc = '';
-                    activeImageId = null;
-                }
-                // Update active class on thumbnails
-                Object.keys(elevationElements).forEach(key => {
-                    const container = elevationElements[key].thumbContainer;
-                    container.classList.remove('border-blue-500', 'border-4');
-                    if (!elevationImages[key]) {
-                        container.classList.add('border-dashed');
-                    } else {
-                        container.classList.remove('border-dashed');
-                    }
-                });
-                return;
-            }
-
-            activeImageId = elevationKey;
-            const activeImageData = elevationImages[elevationKey];
-            
-            // Use the currently stored (rendered or original) image data for display
-            renderImageView.src = activeImageData.fullSrc;
-            renderImageSrc = activeImageData.fullSrc; 
-            
-            // Update active class on thumbnails
-            Object.keys(elevationElements).forEach(key => {
-                const container = elevationElements[key].thumbContainer;
-                if (key === elevationKey) {
-                    container.classList.add('border-blue-500', 'border-4');
-                    container.classList.remove('border-dashed');
-                } else {
-                    container.classList.remove('border-blue-500', 'border-4');
-                    if (!elevationImages[key]) {
-                        container.classList.add('border-dashed');
-                    } else {
-                        container.classList.remove('border-dashed');
-                    }
-                }
-            });
-        }
-        
-        downloadImageButton.addEventListener('click', () => {
-            if (renderImageSrc.startsWith('data:image')) {
-                const link = document.createElement('a');
-                link.href = renderImageSrc;
-                link.download = `loveth-ai-render-${activeImageId || 'full'}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showMessageBox('Image download started.', 'success');
-            } else {
-                showMessageBox('No rendered image to download. Generate a render first!', 'error');
-            }
-        });
-
-        clearRenderButton.addEventListener('click', () => {
-            // Reset state
-            elevationImages = { front: null, rear: null, left: null, right: null };
-            activeImageId = null;
-            analysisReportText = '';
-            renderImageSrc = '';
-
-            // Reset UI
-            renderImageView.src = "https://placehold.co/1280x720/e2e8f0/94a3b8?text=Your+AI+Render+Here";
-            structuralOutputContainer.innerHTML = '<p class="text-gray-500">Analysis results will appear here after you upload an image and click \'Perform Structural Analysis\'.</p>';
-
-            Object.keys(elevationElements).forEach(key => {
-                const container = elevationElements[key].thumbContainer;
-                container.innerHTML = `<span class="text-gray-400 text-sm pointer-events-none">Upload Image</span>`;
-                container.classList.remove('border-blue-500', 'border-4');
-                container.classList.add('border-dashed');
-                elevationElements[key].uploadInput.value = ''; // Clear file input
-            });
-            showMessageBox('All images and renders cleared.', 'info');
-        });
-
-        // --- PDF Generation ---
-
-        downloadPdfButton.addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            let y = 10;
-            const margin = 10;
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-
-            doc.setFontSize(22);
-            doc.text("Loveth AI Designer Report", margin, y);
-            y += 10;
-            doc.setFontSize(12);
-            doc.text(`Date: ${new Date().toLocaleDateString()}`, margin, y);
-            y += 10;
-
-            doc.setLineWidth(0.5);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 5;
-
-            // 1. Rendered Image
-            if (renderImageSrc.startsWith('data:image')) {
-                const imgWidth = pageWidth - 2 * margin;
-                const imgHeight = (imgWidth / 16) * 9; // Maintain 16:9 aspect ratio
-                doc.setFontSize(16);
-                doc.text("Current Render View", margin, y);
-                y += 5;
-                doc.addImage(renderImageSrc, 'PNG', margin, y, imgWidth, imgHeight);
-                y += imgHeight + 10;
-            }
-
-            // 2. Structural/Text Report
-            if (analysisReportText.length > 0) {
-                if (y > pageHeight - 30) {
-                    doc.addPage();
-                    y = 10;
-                }
-                doc.setFontSize(16);
-                doc.text("AI Analysis/Report", margin, y);
-                y += 5;
-
-                // Use a simple markdown-to-text conversion for basic content
-                const textContent = analysisReportText
-                    .replace(/## (.*)/g, '\n\n--- $1 ---\n')
-                    .replace(/### (.*)/g, '\n\n** $1 **\n')
-                    .replace(/(\*\*|__)/g, '')
-                    .replace(/(\*|_)/g, '')
-                    .replace(/\[\d+\]/g, '') // Remove citations
-                    .replace(/\n\s*\n/g, '\n\n'); // Normalize multiple newlines
-
-                const splitText = doc.splitTextToSize(textContent, pageWidth - 2 * margin);
-                doc.setFontSize(10);
-                
-                splitText.forEach(line => {
-                    if (y > pageHeight - 10) {
-                        doc.addPage();
-                        y = 10;
-                    }
-                    doc.text(line, margin, y);
-                    y += 5;
-                });
-            } else {
-                if (y > pageHeight - 30) {
-                    doc.addPage();
-                    y = 10;
-                }
-                doc.setFontSize(12);
-                doc.setTextColor(150, 150, 150);
-                doc.text("No AI analysis report available to include.", margin, y);
-                doc.setTextColor(0, 0, 0);
-                y += 10;
-            }
-
-            // 3. Save
-            doc.save("Loveth_AI_Design_Report.pdf");
-            showMessageBox('PDF download started.', 'success');
-        });
-
-        // --- LLM Functions (Image Generation) ---
-
-        /**
-         * Generates a single elevation image using Gemini Image Preview.
-         * @param {string} prompt The text prompt.
-         * @param {string} baseImageBase64 The base64 data of the image to edit/style.
-         * @param {string | null} styleReferenceImageBase64 Optional reference image base64 data.
-         * @returns {Promise<string>} Base64 data of the generated image.
-         */
-        async function generateSingleElevation(prompt, baseImageBase64, styleReferenceImageBase64 = null) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
-            
-            const parts = [{ text: prompt }];
-            parts.push({ inlineData: { mimeType: 'image/png', data: baseImageBase64 } });
-            if (styleReferenceImageBase64) {
-                parts.push({ inlineData: { mimeType: 'image/png', data: styleReferenceImageBase64 } });
-            }
-
-            const payload = {
-                contents: [{ parts }],
-                generationConfig: {
-                    responseModalities: ['IMAGE']
-                }
-            };
-            
-            const response = await fetchWithRetry(apiUrl, payload);
-            const result = await response.json();
-            const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-
-            if (!base64Data) {
-                throw new Error(`AI image generation failed. Please check input images and try again. Response: ${JSON.stringify(result)}`);
-            }
-            
-            return base64Data;
-        }
-
-
-        // --- Image Generation Logic (Flow of Rendering) ---
-
-        generateRenderButton.addEventListener('click', async () => {
-            const userPrompt = promptInput.value.trim();
-
-            if (!elevationImages.front?.originalBase64Data || !elevationImages.rear?.originalBase64Data || !elevationImages.left?.originalBase64Data || !elevationImages.right?.originalBase64Data) {
-                showMessageBox('Please upload all four elevation images for a full render.', 'error');
-                return;
-            }
-            
-            if (!userPrompt) {
-                showMessageBox('Please describe the new environment and materials in the text box.', 'error');
-                return;
-            }
-
-            loadingIndicator.classList.remove('hidden');
-            renderImageView.style.opacity = '0.5';
-
-            try {
-                // --- Step 1: Render Front Elevation (Master Render/Style Establishment) ---
-                showMessageBox('Step 1/5: Rendering Front Elevation and establishing master style...', 'info');
-                const frontPrompt = `MASTER RENDER PROMPT: Use the attached architectural elevation as a base. Strictly maintain the structure, dimensions, and window placement of the building. Apply the following materials, lighting, and environment to create a photorealistic render: ${userPrompt}.`;
-                
-                const renderedFrontBase64 = await generateSingleElevation(frontPrompt, elevationImages.front.originalBase64Data);
-                
-                // Update front elevation data and UI
-                const renderedFrontSrc = `data:image/png;base64,${renderedFrontBase64}`;
-                elevationImages.front = { ...elevationImages.front, base64Data: renderedFrontBase64, fullSrc: renderedFrontSrc };
-                elevationElements.front.thumbContainer.innerHTML = `<img src="${renderedFrontSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
-                renderImageView.src = renderedFrontSrc; // Show the main result in the big view
-                renderImageSrc = renderedFrontSrc;
-                setActiveElevation('front'); // Set front as active view
-
-                // --- Step 2, 3, 4: Render Other Elevations using the front as a style guide ---
-                const elevationsToRender = ['rear', 'left', 'right'];
-                for (let i = 0; i < elevationsToRender.length; i++) {
-                    const key = elevationsToRender[i];
-                    showMessageBox(`Step ${i + 2}/5: Applying master style to ${key} elevation...`, 'info');
-
-                    // ** UPDATED STRICT PROMPT FOR ARCHITECTURAL PRESERVATION **
-                    const styleTransferPrompt = `STRICT ARCHITECTURAL STYLE TRANSFER. 
-[IMAGE 1] is the original ${key} elevation. 
-[IMAGE 2] is the master style reference (Front Elevation render).
-
-Your sole task is to render [IMAGE 1] with the exact style of [IMAGE 2].
-
-**PRIORITY MANDATES (ABSOLUTE):**
-1. **GEOMETRY LOCK:** You MUST preserve the structure, dimensions, window arrangement, and footprint of the building in [IMAGE 1] with zero deviation. This is non-negotiable architectural data.
-2. **STYLE MATCH:** Apply only the materials, colors, lighting, and environment (as described: ${userPrompt}) from [IMAGE 2] to [IMAGE 1].
-3. **CONTEXTUAL LANDSCAPING:** The new landscaping and environment must be contextually appropriate for the ${key} side of the building, matching the style and mood established in [IMAGE 2].
-
-Generate a photorealistic, architecturally accurate render of the ${key} elevation.`;
-                    
-                    const originalBase64 = elevationImages[key].originalBase64Data;
-                    const renderedElevationBase64 = await generateSingleElevation(styleTransferPrompt, originalBase64, renderedFrontBase64);
-                    
-                    const renderedSrc = `data:image/png;base64,${renderedElevationBase64}`;
-                    elevationImages[key] = { ...elevationImages[key], base64Data: renderedElevationBase64, fullSrc: renderedSrc };
-                    elevationElements[key].thumbContainer.innerHTML = `<img src="${renderedSrc}" class="w-full h-full object-cover rounded-lg pointer-events-none">`;
-                }
-
-                showMessageBox('Step 5/5: Full architectural render complete and consistent!', 'success');
-            } catch (error) {
-                console.error('Full Render Error:', error);
-                showMessageBox(`Render failed: ${error.message || 'An unknown error occurred.'}`, 'error');
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                renderImageView.style.opacity = '1';
-            }
-        });
-
-        // --- LLM Functions (Text/Multimodal Analysis) ---
-        
-        /**
-         * Generic function for multimodal text generation tasks.
-         * @param {string} systemPrompt The instruction for the AI's role/behavior.
-         * @param {string} userQuery The main prompt text.
-         * @param {boolean} useActiveImage Whether to include the currently active image for grounding.
-         * @param {boolean} useGoogleSearch Whether to enable Google Search grounding.
-         * @returns {Promise<string>} The generated text content.
-         */
-        async function runTextAnalysis(systemPrompt, userQuery, useActiveImage = true, useGoogleSearch = false) {
-            if (useActiveImage && !Object.values(elevationImages).some(img => img)) {
-                 throw new Error("Please upload an elevation image first.");
-            }
-            
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-            const parts = [{ text: userQuery }];
-
-            if (useActiveImage && activeImageId) {
-                const activeImageBase64 = elevationImages[activeImageId].base64Data;
-                parts.push({ inlineData: { mimeType: 'image/png', data: activeImageBase64 } });
-            } else if (useActiveImage && Object.values(elevationImages).some(img => img)) {
-                // Fallback to the first available image if activeImageId is null but images exist
-                const firstKey = Object.keys(elevationImages).find(k => elevationImages[k] !== null);
-                if (firstKey) {
-                    const firstImageBase64 = elevationImages[firstKey].base64Data;
-                    parts.push({ inlineData: { mimeType: 'image/png', data: firstImageBase64 } });
-                }
-            }
-
-
-            const payload = {
-                contents: [{ parts: parts }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-            };
-
-            if (useGoogleSearch) {
-                payload.tools = [{ "google_search": {} }];
-            }
-
-            const response = await fetchWithRetry(apiUrl, payload);
-            const result = await response.json();
-            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (!text) {
-                throw new Error("AI analysis returned no content.");
-            }
-            return text;
-        }
-
-
-        // --- Button Click Handlers (Text/Multimodal) ---
-
-        async function handleAnalysisButton(buttonId, systemPrompt, userQueryGenerator, useSearch = false, useActiveImage = true) {
-            try {
-                // Determine if there is an image uploaded at all
-                if (useActiveImage && !Object.values(elevationImages).some(img => img)) {
-                     showMessageBox('Please upload an elevation image first.', 'error');
-                     return;
-                }
-                
-                loadingIndicator.classList.remove('hidden');
-                renderImageView.style.opacity = '0.5';
-                structuralOutputContainer.innerHTML = `<div class="p-4 text-center text-gray-500"><i class="fas fa-sync-alt fa-spin mr-2"></i> Generating Report...</div>`;
-
-                const userQuery = userQueryGenerator();
-                const resultText = await runTextAnalysis(systemPrompt, userQuery, useActiveImage, useSearch);
-
-                displayMarkdownOutput(resultText);
-                showMessageBox(`${buttonId} complete.`, 'success');
-
-            } catch (error) {
-                console.error(`${buttonId} Error:`, error);
-                structuralOutputContainer.innerHTML = `<div class="p-4 text-red-600 font-semibold">Error: ${error.message}.</div>`;
-                showMessageBox(`Operation failed: ${error.message || 'An unknown error occurred.'}`, 'error');
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                renderImageView.style.opacity = '1';
-            }
-        }
-
-        structuralAnalysisButton.addEventListener('click', () => {
-            handleAnalysisButton(
-                'Structural Analysis',
-                `You are a senior structural engineer. Analyze the attached architectural image. Focus on identifying potential structural systems (e.g., concrete frame, steel frame, load-bearing walls), material suitability, and any visible risks or non-standard features. Provide a concise report in Markdown format. Do not use external search.`,
-                () => `Perform a structural analysis on this building elevation.`,
-                false // No search
-            );
-        });
-
-        designBriefButton.addEventListener('click', () => {
-             handleAnalysisButton(
-                'Design Brief Creation',
-                `You are an expert architectural consultant specializing in drafting concise project briefs. Create a professional, persuasive design brief for the building shown in the attached image. Infer the building's likely function (e.g., residential, commercial, mixed-use, style (e.g., modernist, contemporary, brutalist), and target audience. Present the brief with clear Markdown headings. Do not use external search.`,
-                () => `Create a detailed design brief for the attached architectural project.`,
-                false // No search
-            );
-        });
-        
-        generateColorPaletteButton.addEventListener('click', () => {
-             handleAnalysisButton(
-                'Color Palette Generation',
-                `You are a color theory and design expert. Based on the attached image, generate a harmonious color palette that complements the building's style and surrounding environment (if present). Provide 5 distinct colors (including primary, accent, and secondary) with their hex codes. Present the output as a Markdown table. Do not use external search.`,
-                () => `Suggest a color palette for this architectural rendering, including hex codes.`,
-                false // No search
-            );
-        });
-        
-        generateDesignIdeasButton.addEventListener('click', () => {
-             handleAnalysisButton(
-                'Design Suggestion',
-                `You are an innovative architect. Provide three distinct, actionable design suggestions to enhance the building shown in the attached image, focusing on aesthetics and functionality (e.g., facade articulation, material change, or layout enhancement). Present the suggestions clearly using a Markdown list. Do not use external search.`,
-                () => `Generate three design enhancement ideas for the attached building elevation.`,
-                false // No search
-            );
-        });
-
-        socialPostButton.addEventListener('click', () => {
-             handleAnalysisButton(
-                'Social Media Draft',
-                `You are a marketing specialist for an architectural firm. Draft a captivating social media post (e.g., for Instagram or LinkedIn) announcing the attached design. Include a compelling headline, a brief description of the design's unique features, and 5 relevant hashtags. Present the draft as a single block of text suitable for posting, using bold for emphasis where appropriate. Do not use external search.`,
-                () => `Draft a social media post for the attached architectural rendering.`,
-                false // No search
-            );
-        });
-        
-        critiqueButton.addEventListener('click', () => {
-             handleAnalysisButton(
-                'Design Critique',
-                `You are a harsh but fair architectural critic. Provide a concise, professional critique of the attached building design. Highlight two strengths (e.g., massing, proportion) and two weaknesses (e.g., fenestration, lack of context). Use clear, high-level architectural terminology in a balanced Markdown format. Do not use external search.`,
-                () => `Critique the architectural design in the attached image.`,
-                false // No search
-            );
-        });
-        
-        sustainabilityReportButton.addEventListener('click', () => {
-             handleAnalysisButton(
-                'Sustainability Report',
-                `You are an expert in sustainable building and LEED certification. Based on the attached design, provide a brief, high-level report detailing 3 potential sustainable design features (e.g., material choices, energy systems, water management) that could be integrated or are visible. Also, mention one potential environmental challenge this design may face. Use Google Search to ground your recommendations in current sustainable practices. Present in a clear Markdown list.`,
-                () => `Provide a high-level sustainability report and suggest three improvements for the attached building design.`,
-                true // Use search
-            );
-        });
-        
-        costEstimationButton.addEventListener('click', () => {
-             handleAnalysisButton(
-                'Cost Estimation',
-                `You are a construction project manager. Provide a rough, high-level cost estimate for the project shown in the attached image. Infer the size, complexity, and materials, and give an estimate range in Kenyan Shillings (Ksh) per square meter, and a brief explanation of the key cost drivers (e.g., facade complexity, high-end finishes). Use Google Search for rough, general cost data and currency conversion reference. Present the output in a clear Markdown block.`,
-                () => `Give a high-level project cost estimate in Kenyan Shillings (Ksh) for the attached building design.`,
-                true // Use search
-            );
-        });
-
-        // --- Copy Report Logic ---
-        function copyReportToClipboard() {
-            if (analysisReportText.length === 0) {
-                showMessageBox('No report generated yet to copy.', 'error');
-                return;
-            }
-
-            // Use the document.execCommand('copy') method, as recommended for iFrame environments.
-            const textArea = document.createElement("textarea");
-            textArea.value = analysisReportText;
-            textArea.style.position = "fixed"; // Prevents scrolling
-            textArea.style.left = "-9999px"; // Off-screen
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-
-            let successful = false;
-            try {
-                successful = document.execCommand('copy');
-                if (successful) {
-                    showMessageBox('Report successfully copied to clipboard!', 'success');
-                } else {
-                    showMessageBox('Copy failed. Please copy the text manually from the output box.', 'error');
-                }
-            } catch (err) {
-                console.error('Copy failed using execCommand:', err);
-                showMessageBox('Copy failed. Please copy the text manually from the output box.', 'error');
-            } finally {
-                document.body.removeChild(textArea);
-            }
-        }
-        // --- Text-to-Speech (TTS) Logic ---
-        readAloudButton.addEventListener('click', async () => {
-            const textToRead = analysisReportText.trim();
-            if (textToRead.length === 0) {
-                showMessageBox('Please run an analysis first before clicking "Read Aloud".', 'error');
-                return;
-            }
-
-            loadingIndicator.classList.remove('hidden');
-            renderImageView.style.opacity = '0.5';
-
-            try {
-                showMessageBox('Generating audio...', 'info');
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-
-                const payload = {
-                    contents: [{
-                        parts: [{ text: `Say this professional architectural analysis report with an informative tone: ${textToRead}` }]
-                    }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: {
-                            voiceConfig: {
-                                // Using a firm, informative voice
-                                prebuiltVoiceConfig: { voiceName: "Charon" } 
-                            }
-                        }
-                    },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
-
-                const response = await fetchWithRetry(apiUrl, payload);
-                const result = await response.json();
-                const part = result?.candidates?.[0]?.content?.parts?.[0];
-                const audioData = part?.inlineData?.data;
-                const mimeType = part?.inlineData?.mimeType;
-
-                if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                    if (!sampleRateMatch) throw new Error("Could not determine sample rate from API response.");
-                    
-                    const sampleRate = parseInt(sampleRateMatch[1], 10);
-                    const pcmData = base64ToArrayBuffer(audioData);
-                    const pcm16 = new Int16Array(pcmData);
-                    const wavBlob = pcmToWav(pcm16, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-
-                    audioPlayer.src = audioUrl;
-                    audioPlayer.play();
-                    showMessageBox('Audio playback started.', 'success');
-                } else {
-                    throw new Error("Invalid audio response from API.");
-                }
-
-            } catch (error) {
-                console.error("TTS Error:", error);
-                showMessageBox(`Audio generation failed: ${error.message}`, 'error');
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                renderImageView.style.opacity = '1';
-            }
-        });
-        
-        // --- Event Listeners ---
-        // The dynamic copy button listener is attached in displayMarkdownOutput function.
-
     </script>
 </body>
 </html>
